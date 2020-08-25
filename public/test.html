@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <input id="myFile" type="file" name="upload"></br>
+            
+
+    <input id = "doneB" type="button" value="Done!" onclick="getLayers()">
+</body>
+
+<script>
+    function getLayers(){
+        var data = new FormData();
+        file = document.getElementById("myFile").files[0]
+        data.append('json', file);
+        
+        $.ajax({
+            url: 'http://localhost:3000/newFlavour',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            success: function(data){
+                console.log(data)
+            }
+        });
+    }
+</script>
+</html>

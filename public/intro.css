@@ -1,0 +1,91 @@
+body{   
+    margin:0 auto; 
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+  
+  li {
+    float: left;
+  }
+  
+  li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    border-right: 1px solid #bbb;
+  }
+  
+li a:hover {
+    background-color: #111;
+}
+
+.active{
+    background-color: #111;
+}
+
+#wText{
+    padding-top:35px;
+    text-align:center;
+    font-size: 20px;
+}
+
+#statisticDiv{
+    width:100%;
+    text-align: center;
+    font-size: 13px;
+}
+
+#pieDiv{
+    width: 49%;
+    float: left;
+}
+
+#chartDiv{
+    width: 49%;
+    float: left;
+}
+.clearfix{
+    clear:both
+}
+
+#dateDiv{
+    width: 50%;
+    float:left;
+}
+
+#leaderDiv{
+    width: 50%;
+    float:left;
+}
+
+#tblUser{
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 50%;
+}
+
+#tblUser td, #tblUser th {
+    border: 1px solid #ddd;
+    padding: 4px;
+}
+
+#tblUser tr:nth-child(even){background-color: #f2f2f2;}
+
+#tblUser th {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
