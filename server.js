@@ -50,7 +50,7 @@ app.post('/jsonUpload', function (req, res){
     form.on('file', function (name, file){
 		let rawdata = fs.readFileSync(file.path);
 		jsonFile = JSON.parse(rawdata)
-		testData = heatMap(jsonFile)
+		//testData = heatMap(jsonFile)
     });
 
     res.sendStatus(200);
@@ -60,21 +60,10 @@ app.get('/download', (req, res) => {
     res.json(testData);
 })
 
-var curUserId = "1"
+var curUserId = "4"
 app.post('/arrayUpload', function (req, res){	
 	let array = req.body
-    //parseData(jsonFile,array)
-    jsonFile.locations.forEach(function iteration(value,index,array){
-        query("INSERT INTO location VALUES ("+userId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
-        if (value.hasOwnProperty("activity")){
-            value.activity.forEach(function iter(curActivity){
-                var i = 0;
-                if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "ON_VEHICLE")
-                    i = 1;
-                query("INSERT INTO activity VALUES ("+userId+","+value.timestampMs+","+curActivity.timestampMs+",'"+curActivity.activity[i].type+"')");
-            })
-        }
-    })
+    parseData(jsonFile,array)
 	res.sendStatus(200);
 });
 
@@ -220,10 +209,10 @@ app.get('/downloadPeriodData', (req, res) => {
 })
 
 statData = {
-	user: "John M.",
+	user: null,
 	dates : {
-		startDate : new Date(2017, 3, 13),
-		endDate : new Date(2020, 7, 18),
+		startDate : null,
+		endDate : null,
 		lastUplaod : new Date(2020, 7, 10)
 	},
 	position : 46,
@@ -241,12 +230,137 @@ statData = {
 			score: 85
 		}
 	},
-	percentages : [22, 75, 38, 90 ,5, 22, 17, 46, 0, 0, 0, 0]
+	percentages : []
 }
 
 app.post('/statUpload', function (req, res){	
 	//φτιαξε statdata
-	
+    
+    sql = "SELECT username from user where id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        statData.user = JSON.parse(JSON.stringify(result[0])).username
+        
+    });
+
+    sql = "SELECT MIN(time) from location where user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MIN(time)'])
+
+        statData.dates.startDate = date.toDateString()
+        
+    });
+
+    sql = "SELECT MAX(time) from location where user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MAX(time)'])
+
+        statData.dates.endDate = date.toDateString()
+    });
+
+    sql = "SELECT time,type from activity where location_user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        months = [{green:0,red:0}, 
+            {green:0,red:0},{green:0,red:0}, {green:0,red:0}, {green:0,red:0}, {green:0,red:0},
+            {green:0,red:0}, {green:0,red:0},{green:0,red:0}, {green:0,red:0}, {green:0,red:0},
+            {green:0,red:0}]
+        
+        greenTypes = ['ON_BICYCLE', 'ON_FOOT', 'RUNNING','WALKING']
+        redTypes = ['EXITING_VEHICLE', 'IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE', 'IN_VEHICLE']
+        neutralTypes = ['STILL', 'TILTING', 'UNKNOWN']
+
+        results = JSON.parse(JSON.stringify(result))
+
+        var d = new Date();
+        var curYear = 2016;
+
+        results.forEach( function iteration(value){
+            date = new Date(value.time)
+            month = date.getMonth()
+            year = date.getYear()
+            if (year === curYear){
+                if(greenTypes.includes(value.type))
+                    months[month].green++;
+                if(redTypes.includes(value.type))
+                    months[month].red++;
+            }
+        })
+
+        console.log(months)
+
+        months.forEach(function iterate(value){
+            statData.percentages.push(((value.green/(value.green+value.red))*100).toFixed(2))
+        }) 
+    });
+
+    sql = "SELECT location_user_id,username,time,type from activity join user on location_user_id = user.id;"
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        var d = new Date();
+        var cur_month = 7;
+        var cur_year = 2016;
+        results = JSON.parse(JSON.stringify(result))
+
+        greenTypes = ['ON_BICYCLE', 'ON_FOOT', 'RUNNING','WALKING']
+        redTypes = ['EXITING_VEHICLE', 'IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE', 'IN_VEHICLE']
+        neutralTypes = ['STILL', 'TILTING', 'UNKNOWN']
+
+        scores = []
+
+        results.forEach( function iteration(value){
+            date = new Date(value.time)
+            month = date.getMonth()
+            year = date.getYear()
+            if(month === cur_month && year === cur_year){
+                found = false;
+                scores.forEach(function iter(val){
+                    if(val.id === value.user_id){
+                        if(greenTypes.includes(value.type))
+                            val.green++;
+                        if(redTypes.includes(value.type))
+                            val.red++;
+                        found = true;
+                        return;
+                    }
+                })
+                if(!found){
+                    if(greenTypes.includes(value.type))
+                        scores.push({id:value.location_user_id,green:1,red:0,name:value.username})
+                    else if(redTypes.includes(value.type))
+                        scores.push({id:value.location_user_id,green:0,red:1,name:value.username})
+                    else 
+                        scores.push({id:value.location_user_id,green:0,red:0,name:value.username})
+                }
+            }
+        })
+
+
+
+        fin_scores = []
+        scores.forEach( function iteration(value){
+              fin_scores.push({id:value.id,score:((value.green/(value.green+value.red))*100).toFixed(2),name:value.username})     
+        })
+
+        
+        fin_scores.sort(function(a, b) {
+            var keyA = a.score,
+            keyB = b.score;
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+
+        console.log(fin_scores)
+
+    });
 	res.sendStatus(200);
 });
 
@@ -429,14 +543,14 @@ app.get('/downloadmapData', (req, res) => {
     res.json(mapData);
 })
 
-//Works but O(n^2) and store to base
+//Works but O(n^2)
 function parseData(jsonFile,coordinates){
-	indexes = []
 	jsonFile.locations.forEach(function iteration(value, index, array){
+        var skip = false;
 		var lat = value.latitudeE7*Math.pow(10,-7);
 		var lng = value.longitudeE7*Math.pow(10,-7);
 		 if(getDistanceFromLatLonInKm(lat,lng,38.230462,21.753150)>10){
-			indexes.push(value)
+			skip = true;
 		 }else{
 			coordinates.forEach(function(element,i,table){
 				var lat_min = element[0].lat;
@@ -444,19 +558,28 @@ function parseData(jsonFile,coordinates){
 				var lng_min = element[0].lng;
 				var lng_max = element[2].lng;
 				if( lat>=lat_min && lat<=lat_max && lng>=lng_min && lng<=lng_max)
-					indexes.push(value)
+					skip = true;
 			})
-		}
-	})
-
-	indexes.forEach(function iteration(value, index, array){
-		jsonFile.locations.splice(jsonFile.locations.indexOf(value),1)
-	})
-	
-
-	testData = heatMap(jsonFile)
-	//store to base
-	
+        }
+        if(!skip){
+            query("INSERT INTO location VALUES ("+curUserId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
+            if (value.hasOwnProperty("activity")){
+                value.activity.forEach(function iter(curActivity){
+                    var i = 0;
+                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "ON_VEHICLE")
+                        i = 1;
+                    query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+curActivity.activity[i].type+"')");
+                })
+            }
+        }else{
+            // testData.data.forEach(function iteration(val,ind){
+            //     if(val.lat === value.latitudeE7*Math.pow(10,-7) && val.lng === value.longitudeE7*Math.pow(10,-7)){
+            //         testData.data.splice(ind,1)  
+            //         return
+            //     }
+            // })    
+        }
+	})	
 }
 
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
@@ -494,11 +617,11 @@ function heatMap(jsonFile){
             data.push(elem)
     })
     
-    var testData = {
+    tData = {
         max: data.length,
         data: data
 	};
 	
-	return testData
+	return tData
 }
 

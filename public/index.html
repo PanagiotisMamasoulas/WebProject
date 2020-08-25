@@ -103,12 +103,13 @@
             method: 'POST',
             success: function(){
                 $.get( "/download", function( data ) {
-                    createHeat(data)
+                    //createHeat(data)
+                    document.getElementById("uComplete").style.display = "block";
                 });
             }
         });
 
-        document.getElementById("uComplete").style.display = "block";
+        
         document.getElementById("doneB").disabled = true;
         document.getElementById("myFile").disabled = true;
         drawControl.remove()
@@ -132,7 +133,7 @@
             method: 'POST',
             success: function(){
                 $.get( "/download", function( data ) {
-                    createHeat(data)
+                    //createHeat(data)
                     document.getElementById("gLine2").style.display = "block";
                 });
             }
