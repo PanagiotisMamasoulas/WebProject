@@ -115,20 +115,35 @@
 </body>
 
 <script>
-    var early_year = 2017;
-    var late_year = 2018; //add to nodejs logic
-
-    for(i=early_year;i<=late_year;i++){
-        option = document.createElement('option');
-        option.value = i.toString();
-        option.appendChild(document.createTextNode(i));
-        document.getElementById("first_year").appendChild(option);
-        option = document.createElement('option');
-        option.value = i.toString();
-        option.appendChild(document.createTextNode(i));
-        document.getElementById("last_year").appendChild(option);
+    var early_year = null;
+    var late_year = null;
+    $.ajax({
+            url: 'http://localhost:3000/getYears',
+            data: null,
+            cache: false,
+            contentType: "application/json",
+            processData: false,
+            method: 'POST',
+            success: function(){
+                $.get( "/downloadYears", function( data ) {
+                    fixYears(data)    
+                });
+            }
+        });
+    function fixYears(data){
+        early_year = data.early_year;
+        late_year = data.late_year;
+        for(i=early_year;i<=late_year;i++){
+            option = document.createElement('option');
+            option.value = i.toString();
+            option.appendChild(document.createTextNode(i));
+            document.getElementById("first_year").appendChild(option);
+            option = document.createElement('option');
+            option.value = i.toString();
+            option.appendChild(document.createTextNode(i));
+            document.getElementById("last_year").appendChild(option);
+        }
     }
-
     document.getElementById("check").checked = false
 
     function handleClick(cb) {
@@ -151,20 +166,7 @@
     labels = []
     data = []
     colors = []
-    weeks = {
-        "Walking" : {
-            hour:"16:12",
-            day:"Tuesday"
-        },
-        "Running" : {
-            hour:"07:52",
-            day:"Saturday"
-        },
-        "On Vehicle" : {
-            hour:"23:27",
-            day:"Friday"
-        }
-    }
+    weeks = []
     
     var ctp = document.getElementById("pieChart").getContext('2d');
     var myPieChart = new Chart(ctp, {
@@ -217,14 +219,35 @@
         period = null;
         if(document.getElementById("check").checked){
             var first_month = document.getElementById("first_month").value
-            var last_month = document.getElementById("last_month").value
-            var first_year = document.getElementById("first_year").value
-            var last_year = document.getElementById("last_year").value
+            var last_month =  document.getElementById("last_month").value
+            var first_year =  document.getElementById("first_year").value
+            var last_year =   document.getElementById("last_year").value
 
             if(!first_month || !last_month || !first_year || !last_year){
                 alert("fields cannot be blanc, thank you")
                 return;
             }
+
+            var first_month =   Number(first_month)
+            var last_month =    Number(last_month )
+            var first_year =    Number(first_year)
+            var last_year =     Number(last_year)
+                
+            if(first_year>last_year){
+                alert("Wrong Date")
+                return;
+            }
+            else if(first_year === last_year){
+                if(first_month>last_month){
+                    alert("Wrong Date")
+                    return;
+                }
+                else if (first_month===last_month){
+                    alert("Wrong Date")
+                    return;
+                }
+            }
+
 
             period = {
                 first_month :first_month,
@@ -269,6 +292,10 @@
         
         labels = data.labels
         percentages = data.percentages
+        console.log(percentages)
+        percentages = percentages.toString().match(/\d+(?:\.\d+)?/g).map(Number)
+        console.log(percentages)
+        
         weeks = data.weeks
         heatmapData = data.heatmapData
 
@@ -303,7 +330,7 @@
         document.getElementById("hourBody").replaceWith(new_tbody)
         new_tbody.id = "hourBody"
         labels.forEach(function iteration(value, index, array){
-            tableRow([value,weeks[value].hour,weeks[value].day],new_tbody)
+            tableRow([value,weeks[index].hour,weeks[index].day],new_tbody)
         })
     }
 

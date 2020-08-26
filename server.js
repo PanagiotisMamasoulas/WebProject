@@ -62,145 +62,150 @@ app.get('/download', (req, res) => {
 
 var curUserId = "4"
 app.post('/arrayUpload', function (req, res){	
-	let array = req.body
-    parseData(jsonFile,array)
+    let array = req.body
+    console.log(jsonFile)
+    //parseData(jsonFile,array)
 	res.sendStatus(200);
 });
 
-periodData = {
-	labels: ["Walking","Running","On Vehicle"],
-	weeks : {
-        "Walking" : {
-            hour:"16:12",
-            day:"Tuesday"
-        },
-        "Running" : {
-            hour:"07:52",
-            day:"Saturday"
-        },
-        "On Vehicle" : {
-            hour:"23:27",
-            day:"Friday"
-        }
-    },
-	percentages: [25,32,43],
-	heatmapData: {
-        max: 15000,
-        data: data = [
-            { lat: 38.2891471, lng: 21.7842876, count: 87 },
-            { lat: 38.292879299999996, lng: 21.7852864, count: 73 },
-            { lat: 38.2985032, lng: 21.7882902, count: 185 },
-            { lat: 38.2895204, lng: 21.783992599999998, count: 30 },
-            { lat: 38.3007907, lng: 21.7876673, count: 26 },
-            { lat: 38.3076412, lng: 21.809057799999998, count: 4 },
-            { lat: 38.293552, lng: 21.7915048, count: 7 },
-            { lat: 38.296835, lng: 21.7864769, count: 1 },
-            { lat: 38.292013499999996, lng: 21.7834254, count: 11 },
-            { lat: 38.292221399999995, lng: 21.782398, count: 3 },
-            { lat: 38.2779035, lng: 21.7625055, count: 5 },
-            { lat: 38.2642853, lng: 21.7438888, count: 1 },
-            { lat: 38.2574919, lng: 21.7412794, count: 7 },
-            { lat: 38.252228699999996, lng: 21.7395212, count: 1 },
-            { lat: 38.2506504, lng: 21.7384427, count: 1 },
-            { lat: 38.2472297, lng: 21.737024299999998, count: 1 },
-            { lat: 38.2474938, lng: 21.7362857, count: 6 },
-            { lat: 38.2440832, lng: 21.7326275, count: 4 },
-            { lat: 38.2396233, lng: 21.7285033, count: 1 },
-            { lat: 38.239435, lng: 21.72863, count: 1 },
-            { lat: 38.239401699999995, lng: 21.7286267, count: 2 },
-            { lat: 38.2396283, lng: 21.7292433, count: 1 },
-            { lat: 38.239554999999996, lng: 21.7294567, count: 1 },
-            { lat: 38.2394433, lng: 21.729606699999998, count: 1 },
-            { lat: 38.2392883, lng: 21.72977, count: 1 },
-            { lat: 38.23938, lng: 21.72987, count: 1 },
-            { lat: 38.239373799999996, lng: 21.7299206, count: 1 },
-            { lat: 38.239354999999996, lng: 21.7305133, count: 1 },
-            { lat: 38.239405, lng: 21.730601699999998, count: 1 },
-            { lat: 38.2397284, lng: 21.7308289, count: 1 },
-            { lat: 38.23992, lng: 21.73099, count: 1 },
-            { lat: 38.2400983, lng: 21.731019999999997, count: 1 },
-            { lat: 38.2402833, lng: 21.7312217, count: 1 },
-            { lat: 38.2404833, lng: 21.7311733, count: 1 },
-            { lat: 38.2406617, lng: 21.7311867, count: 1 },
-            { lat: 38.240836699999996, lng: 21.7311533, count: 1 },
-            { lat: 38.2410317, lng: 21.7309317, count: 1 },
-            { lat: 38.241126699999995, lng: 21.7305933, count: 1 },
-            { lat: 38.2413283, lng: 21.730478299999998, count: 1 },
-            { lat: 38.241505, lng: 21.730294999999998, count: 1 },
-            { lat: 38.241385, lng: 21.7295767, count: 1 },
-            { lat: 38.241833299999996, lng: 21.7301333, count: 1 },
-            { lat: 38.241943299999996, lng: 21.7301833, count: 1 },
-            { lat: 38.2419575, lng: 21.7301768, count: 1 },
-            { lat: 38.2419644, lng: 21.730175499999998, count: 1 },
-            { lat: 38.2416109, lng: 21.7297343, count: 1 },
-            { lat: 38.2406606, lng: 21.7287561, count: 1 },
-            { lat: 38.240246899999995, lng: 21.7292685, count: 1 },
-            { lat: 38.2400587, lng: 21.7300371, count: 1 },
-            { lat: 38.2394821, lng: 21.730933699999998, count: 1 },
-            { lat: 38.2390103, lng: 21.730782299999998, count: 1 },
-            { lat: 38.2391824, lng: 21.730502899999998, count: 15 },
-            { lat: 38.239016299999996, lng: 21.730700799999997, count: 5 },
-            { lat: 38.2391869, lng: 21.7304796, count: 4 },
-            { lat: 38.2390435, lng: 21.7307125, count: 1 },
-            { lat: 38.2391703, lng: 21.730514499999998, count: 2 },
-            { lat: 38.239014, lng: 21.730704799999998, count: 1 },
-            { lat: 38.2390239, lng: 21.7307125, count: 1 },
-            { lat: 38.2390557, lng: 21.730852199999998, count: 1 },
-            { lat: 38.2394683, lng: 21.729128799999998, count: 1 },
-            { lat: 38.2396501, lng: 21.7279876, count: 1 },
-            { lat: 38.2398479, lng: 21.727778, count: 1 },
-            { lat: 38.2399507, lng: 21.7277547, count: 1 },
-            { lat: 38.2396697, lng: 21.7279876, count: 1 },
-            { lat: 38.239867499999995, lng: 21.727778, count: 1 },
-            { lat: 38.239998299999996, lng: 21.7270382, count: 2 },
-            { lat: 38.2396153, lng: 21.7280353, count: 1 },
-            { lat: 38.270652, lng: 21.7469452, count: 1 },
-            { lat: 38.2700441, lng: 21.748459, count: 1 },
-            { lat: 38.2700909, lng: 21.748470599999997, count: 13 },
-            { lat: 38.270103, lng: 21.748459, count: 1 },
-            { lat: 38.2700834, lng: 21.748459, count: 1 },
-            { lat: 38.2700789, lng: 21.7484823, count: 1 },
-            { lat: 38.269144399999995, lng: 21.747810899999998, count: 1 },
-            { lat: 38.2698722, lng: 21.7491187, count: 13 },
-            { lat: 38.2698597, lng: 21.748296, count: 1 },
-            { lat: 38.2700879, lng: 21.748435699999998, count: 1 },
-            { lat: 38.270048599999996, lng: 21.748435699999998, count: 1 },
-            { lat: 38.2700921, lng: 21.7484456, count: 1 },
-            { lat: 38.270083799999995, lng: 21.748435399999998, count: 1 },
-            { lat: 38.2700769, lng: 21.7484239, count: 1 },
-            { lat: 38.270076499999995, lng: 21.7484233, count: 1 },
-            { lat: 38.2700768, lng: 21.748424, count: 2 },
-            { lat: 38.270078, lng: 21.7484462, count: 1 },
-            { lat: 38.2700938, lng: 21.7484476, count: 1 },
-            { lat: 38.270074699999995, lng: 21.748435, count: 1 },
-            { lat: 38.2700775, lng: 21.7484371, count: 1 },
-            { lat: 38.270075, lng: 21.7484206, count: 2 },
-            { lat: 38.2700873, lng: 21.748455399999997, count: 1 },
-            { lat: 38.2700819, lng: 21.748441099999997, count: 1 },
-            { lat: 38.2700909, lng: 21.748470299999997, count: 1 },
-            { lat: 38.2700883, lng: 21.7485006, count: 1 },
-            { lat: 38.270088799999996, lng: 21.7484873, count: 1 },
-            { lat: 38.270088799999996, lng: 21.7484871, count: 1 },
-            { lat: 38.2700891, lng: 21.7484888, count: 1 },
-            { lat: 38.2700895, lng: 21.748490399999998, count: 1 },
-            { lat: 38.2700843, lng: 21.7484651, count: 1 },
-            { lat: 38.270088799999996, lng: 21.7484866, count: 2 },
-            { lat: 38.2700847, lng: 21.748442999999998, count: 1 },
-            { lat: 38.2700846, lng: 21.7484428, count: 5 },
-
-	]  
-    }
+years = {
+    early_year:null,
+    late_year:null
 }
-app.post('/periodUpload', function (req, res){	
-	let array = req.body
-	// array typeof {
-	// 	first_month :first_month,
-	// 	last_month :last_month,
-	// 	first_year :first_year,
-	// 	last_year :last_year 
-	// } 
+app.post('/getYears', function (req, res){	
 
-	//φτιαξε period data σύμφωνα με array
+	sql = "SELECT MIN(time) from location where user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MIN(time)'])
+
+        years.early_year = date.getFullYear()
+        
+    });
+
+    sql = "SELECT MAX(time) from location where user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MAX(time)'])
+
+        years.late_year = date.getFullYear()
+    });
+	
+	res.sendStatus(200);
+});
+
+app.get('/downloadYears', (req, res) => {
+    res.json(years);
+})
+
+periodData = null;
+app.post('/periodUpload', function (req, res){	
+
+    sampleData = {
+        labels: [],
+        weeks : [],
+        percentages: [],
+        heatmapData: {
+            max: 150000,
+            data: data = null  
+        }
+    }
+	let array = req.body
+    days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','no_data']
+    sql = "SELECT activity.time,type,latitude,longitude from activity join location on location_user_id = user_id AND location_time = location.time where location_user_id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        results = JSON.parse(JSON.stringify(result))
+        data = []
+        tempData = []
+        activityCount = 0;
+        results.forEach(function iteration(value){
+            date = new Date(value.time)
+            activity_year = date.getFullYear()
+            activity_month = date.getMonth()
+            inside = null;
+            if(array.last_month === null){
+                inside = (activity_year === Number(array.first_year) && activity_month === Number(array.first_month))
+            }else{
+                inside = (activity_year >= Number(array.first_year) && activity_year <= Number(array.last_year) 
+                && activity_month >= Number(array.first_month)&& activity_month >= Number(array.last_month))
+            }
+
+                if(inside){
+                    //heatmap
+                    activityCount++;
+                    var lat = value.latitude*Math.pow(10,-7);
+                    var lng = value.longitude*Math.pow(10,-7);
+                    var elem = { lat:lat, lng:lng, count: 1};
+                    var found = false;
+                    found = data.some(function iteration(val,ind,arr){
+                        if(val.lat === lat && val.lng === lng){
+                            val.count += 1;
+                            return true;
+                        } 
+                    })
+                    if(!found)
+                        data.push(elem)
+
+                    found = false;
+                    tempData.forEach(function iter(val){
+                        if(val.type === value.type){
+                            val.count++;
+                            val.days[date.getDay()]++
+                            val.hours[date.getHours()]++
+                            found = true;
+                            return;
+                        }
+                    })
+                    if(!found){
+                        tempData.push({
+                            type:value.type,
+                            count:0,
+                            days: [0,0,0,0,0,0,0],
+                            hours: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                        })
+                        tempData[tempData.length - 1].count++;
+                        tempData[tempData.length - 1].days[date.getDay()]++
+                        tempData[tempData.length - 1].hours[date.getHours()]++
+                    }
+                    
+                } 
+            
+        })
+
+    
+        sampleData.heatmapData.data = data;
+
+        tempData.forEach(function iter(val){
+            sampleData.labels.push(val.type)
+            percentage = (val.count/(activityCount)*100).toFixed(2)
+            sampleData.percentages.push(percentage)
+            top = 8;
+            max = 0;
+            val.days.forEach(function iter(val,index){
+                if(val>max)
+                    top = index;
+            })
+            day = days[top]
+            top = 'no_data';
+            max = 0;
+            val.hours.forEach(function iter(val,index){
+                if(val>max)
+                    top = index;
+            })
+            hour = top+":00"
+            sampleData.weeks.push({
+                hour: hour,
+                day: day
+            })
+        })
+
+    });
+    periodData = sampleData;    
+    
 	res.sendStatus(200);
 });
 
@@ -277,26 +282,34 @@ app.post('/statUpload', function (req, res){
         neutralTypes = ['STILL', 'TILTING', 'UNKNOWN']
 
         results = JSON.parse(JSON.stringify(result))
-
         var d = new Date();
-        var curYear = 2016;
+        var curYear = 2019//d.getFullYear();
+        var curMonth = d.getMonth();
 
         results.forEach( function iteration(value){
             date = new Date(value.time)
             month = date.getMonth()
-            year = date.getYear()
-            if (year === curYear){
-                if(greenTypes.includes(value.type))
-                    months[month].green++;
-                if(redTypes.includes(value.type))
-                    months[month].red++;
+            year = date.getFullYear()
+            if(month <= curMonth){
+                if (year === curYear){
+                    if(greenTypes.includes(value.type))
+                        months[month].green++;
+                    if(redTypes.includes(value.type))
+                        months[month].red++;
+                }
+            }else{
+                if (year === curYear-1){
+                    if(greenTypes.includes(value.type))
+                        months[month].green++;
+                    if(redTypes.includes(value.type))
+                        months[month].red++;
+                }
             }
         })
-
-        console.log(months)
-
         months.forEach(function iterate(value){
-            statData.percentages.push(((value.green/(value.green+value.red))*100).toFixed(2))
+            percentage = ((value.green/(value.green+value.red))*100).toFixed(2);
+            if(percentage === 'NaN') percentage = 0;
+            statData.percentages.push(percentage)
         }) 
     });
 
@@ -305,8 +318,8 @@ app.post('/statUpload', function (req, res){
         if (err) throw err;
         
         var d = new Date();
-        var cur_month = 7;
-        var cur_year = 2016;
+        var cur_month = d.getMonth();
+        var cur_year = 2015//d.getFullYear();
         results = JSON.parse(JSON.stringify(result))
 
         greenTypes = ['ON_BICYCLE', 'ON_FOOT', 'RUNNING','WALKING']
@@ -318,7 +331,7 @@ app.post('/statUpload', function (req, res){
         results.forEach( function iteration(value){
             date = new Date(value.time)
             month = date.getMonth()
-            year = date.getYear()
+            year = date.getFullYear()
             if(month === cur_month && year === cur_year){
                 found = false;
                 scores.forEach(function iter(val){
@@ -346,7 +359,7 @@ app.post('/statUpload', function (req, res){
 
         fin_scores = []
         scores.forEach( function iteration(value){
-              fin_scores.push({id:value.id,score:((value.green/(value.green+value.red))*100).toFixed(2),name:value.username})     
+              fin_scores.push({name:value.username,score:((value.green/(value.green+value.red))*100).toFixed(2)})     
         })
 
         
@@ -358,8 +371,6 @@ app.post('/statUpload', function (req, res){
             return 0;
         });
 
-        console.log(fin_scores)
-
     });
 	res.sendStatus(200);
 });
@@ -368,56 +379,53 @@ app.get('/downloadStatData', (req, res) => {
     res.json(statData);
 })
 
-dashData = {
-    activity : {
-        percentages:[22,45,17,16],
-        labels:["On_Foot","On_Vehicle","Still","Tilting"]
-    },
-
-    userSubs : [
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        {name:"Ioanna",subs:2341234},
-        
-    ],
-
-    registries : {
-        month : [234000,74260,530844,150424,310758,98236,195484,124587,57785,203158,375462,145896],
-        days : [2569852,569852,1023564,926548,1320149,1301454,745826],
-        hour: [227121,370170,249662,201345,292205,344726,351090,231178,349678,315611,294979,274930,229110,284614,285775,294594,228322,353226,258034,376812,227643,262215,269853,393429],
-        avYears:[2017,2018],
-        years:[3567890,2545643]
+dashData = null
+app.post('/dashUpload', function (req, res){	
+    
+    tempDash = {
+        activity : {
+            percentages:[22,45,17,16],
+            labels:["On_Foot","On_Vehicle","Still","Tilting"]
+        },
+    
+        userSubs : [
+            {name:"Ioanna",subs:2341234},       
+        ],
+    
+        registries : {
+            month : [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            days: [0,0,0,0,0,0,0],
+            hour: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            avYears:[],
+            years:[3567890,2545643]
+        }
+    
     }
 
-}
-app.post('/dashUpload', function (req, res){	
-	//φτιαξε dashData
-	
+    //avYears
+    sql = "SELECT MIN(time) from location"
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MIN(time)'])
+
+        tempDash.registries.push(date.getFullYear())
+        
+    });
+
+    sql = "SELECT MAX(time) from location"
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['MAX(time)'])
+
+        tempDash.registries.push(date.getFullYear())
+    });
+
+    
+
+    
+    dashData = tempDash
 	res.sendStatus(200);
 });
 
@@ -566,7 +574,7 @@ function parseData(jsonFile,coordinates){
             if (value.hasOwnProperty("activity")){
                 value.activity.forEach(function iter(curActivity){
                     var i = 0;
-                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "ON_VEHICLE")
+                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "IN_VEHICLE")
                         i = 1;
                     query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+curActivity.activity[i].type+"')");
                 })
