@@ -97,7 +97,7 @@
     '10:00-10:59','11:00-11:59','12:00-12:59','13:00-13:59','14:00-14:59','15:00-15:59','16:00-16:59','17:00-17:59','18:00-18:59','19:00-19:59','20:00-20:59',
     '21:00-21:59','22:00-22:59','23:00-23:59']
 
-    dashData = null;
+    
     $.ajax({
             url: 'http://localhost:3000/dashUpload',
             data: null,
@@ -111,9 +111,10 @@
                 });
             }
         });
-    loadPage(dashData)
+    
     function loadPage(dashData){
         colors = []
+        dashData.activity.percentages = dashData.activity.percentages.toString().match(/\d+(?:\.\d+)?/g).map(Number)
         for(i = 0;i<dashData.activity.percentages.length;i++)
             colors.push("rgb("+getRandomInt(256)+","+getRandomInt(256)+","+getRandomInt(256)+")")
 

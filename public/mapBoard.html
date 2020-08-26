@@ -22,7 +22,7 @@
     
     <div style = "width: 84%; margin-left: 15%;">
         
-        <div style = "border:solid;width:50%;overflow: hidden">
+        <div style = "border:solid;width:60%;overflow: hidden">
             <div class="controls">
                 <div class = "clearfix">
                     <div style = "float: left;">
@@ -97,26 +97,26 @@
                         <label class="control-label" style = "float: left;">Day:</label>
                         <select id="first_day" autocomplete="off">
                             <option value="">Day</option>
-                            <option value="0">Monday</option>
-                            <option value="1">Tuesday</option>
-                            <option value="2">Wednesday</option>
-                            <option value="3">Thursday</option>
-                            <option value="4">Friday</option>
-                            <option value="5">Saturday</option>
-                            <option value="6">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="0">Sunday</option>
                         </select>
                     </div>
                     <div id = "dayDiv" style = "float: left;display: none;">
                         -
                         <select id="last_day" autocomplete="off">
                             <option value="">Day</option>
-                            <option value="0">Monday</option>
-                            <option value="1">Tuesday</option>
-                            <option value="2">Wednesday</option>
-                            <option value="3">Thursday</option>
-                            <option value="4">Friday</option>
-                            <option value="5">Saturday</option>
-                            <option value="6">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="0">Sunday</option>
                         </select>
                     </div>
                     <div style = "float:right;">
@@ -137,7 +137,7 @@
                     <div id = "hourDiv" style = "float: left;display: none;">
                         -
                         <input type="number" id="last_hour" min="00" max="23" value = "0" style = "width:30px">::
-                        <input type="number" id="last_mins" min="00" max="59" value = "0" style = "width:30px">
+                        <input type="number" id="last_mins" min="00" max="59" value = "0" style = "width:30px"> -->
                     </div>
                     <div style = "float:right;">
                         <label class="control-label">All:</label>
@@ -151,12 +151,12 @@
                 <div class="clearfix">
                     <label class="control-label">Activities:</label> <br>
                     <form id = "checkboxForm">
-                        <input type="checkbox" name="activity" value="IN_VEHICLE">
-                        <label for="vehicle1"> IN_VEHICLE</label>
+                        <input type="checkbox" name="activity" value="IN_RAIL_VEHICLE">
+                        <label for="vehicle1"> IN_RAIL_VEHICLE</label>
                         <input type="checkbox" name="activity" value="ON_BICYCLE">
                         <label for="vehicle2"> ON_BICYCLE</label>
-                        <input type="checkbox" name="activity" value="ON_FOOT">
-                        <label for="vehicle3"> ON_FOOT</label><br> 
+                        <input type="checkbox" name="activity" value="IN_ROAD_VEHICLE">
+                        <label for="vehicle3"> IN_ROAD_VEHICLE</label><br> 
                         <input type="checkbox" name="activity" value="RUNNING">
                         <label for="vehicle1"> RUNNING</label>
                         <input type="checkbox" name="activity" value="STILL">
@@ -205,21 +205,32 @@
         element.checked = false
     });
 
-    var early_year = 2017;
-    var late_year = 2018; 
-
-
-    for(i=early_year;i<=late_year;i++){
-        option = document.createElement('option');
-        option.value = i.toString();
-        option.appendChild(document.createTextNode(i));
-        document.getElementById("first_year").appendChild(option);
-        option = document.createElement('option');
-        option.value = i.toString();
-        option.appendChild(document.createTextNode(i));
-        document.getElementById("last_year").appendChild(option);
-    }
-
+    
+    $.ajax({
+            url: 'http://localhost:3000/getYears0',
+            data: null,
+            cache: false,
+            contentType: "application/json",
+            processData: false,
+            method: 'POST',
+            success: function(){
+                $.get( "/downloadYears0", function( data ) {
+                    fixYears(data.early_year,data.late_year)    
+                });
+            }
+        });
+        function fixYears(early_year,late_year){
+            for(i=early_year;i<=late_year;i++){
+                option = document.createElement('option');
+                option.value = i.toString();
+                option.appendChild(document.createTextNode(i));
+                document.getElementById("first_year").appendChild(option);
+                option = document.createElement('option');
+                option.value = i.toString();
+                option.appendChild(document.createTextNode(i));
+                document.getElementById("last_year").appendChild(option);
+            }
+        }
 
     function handleClick(cb,div) {
         if(cb.checked){
