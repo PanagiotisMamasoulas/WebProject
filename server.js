@@ -9,6 +9,8 @@ const { title } = require('process')
 var bodyParser = require('body-parser');
 const { json } = require('body-parser');
 var mysql = require('mysql'); 
+const { type } = require('os');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const port = 3000
 const app = express()
 app.use(express.static('public'));
@@ -506,11 +508,9 @@ app.post('/dashUpload', function (req, res){
             tempDash.registries.years[tempDash.registries.avYears.indexOf(year)]++
         })
         tempDash.registries.days.push(tempDash.registries.days.shift())
-        console.log(tempDash)
     });
 
     dashData = tempDash;
-    console.log(dashData)
 	res.sendStatus(200);
 });
 
@@ -518,15 +518,7 @@ app.get('/downloadDashData', (req, res) => {
     res.json(dashData);
 })
 
-mapData = null;
-app.post('/mapUpload', function (req, res){	
-    let mapPeriodData = req.body
-    
-    tempMap = {
-            max: 15000,
-            data: []  
-    }
-    
+function fixMapPeriodData(mapPeriodData){
     if(mapPeriodData.all.year){
         sql = "SELECT MIN(time) from location"
         con.query(sql, function (err, result) {
@@ -574,6 +566,41 @@ app.post('/mapUpload', function (req, res){
     if(mapPeriodData.all.activity){
         mapPeriodData.activities = ['EXITING_VEHICLE', 'IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE', 'ON_BICYCLE', 'RUNNING', 'STILL', 'TILTING', 'UNKNOWN', 'WALKING']
     }
+    return mapPeriodData;
+}
+function isInside(mapPeriodData,value){
+    if(mapPeriodData.activities.includes(value.type)){
+        var date = new Date(value.time);
+        year = date.getFullYear()
+        if(year>=mapPeriodData.years.first_year&&year<=mapPeriodData.years.last_year){
+            month = date.getMonth()
+            if(month>=mapPeriodData.months.first_month&&month<=mapPeriodData.months.last_month){
+                day = date.getDay()
+                if(day>=mapPeriodData.days.first_day&&day<=mapPeriodData.days.last_day){
+                    hour = date.getHours()
+                    if(hour>=mapPeriodData.hours.first_hour&&hour<=mapPeriodData.hours.last_hour){
+                        mins = date.getMinutes()
+                        if(mins>=mapPeriodData.hours.first_mins&&mins<=mapPeriodData.hours.last_mins){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+mapData = null;
+app.post('/mapUpload', function (req, res){	
+    let mapPeriodData = req.body
+    
+    tempMap = {
+            max: 15000,
+            data: []  
+    }
+    
+    fixMapPeriodData(mapPeriodData);
     
     sql = "SELECT activity.time,type,latitude,longitude from activity join location on location_user_id = user_id AND location_time = location.time"
     con.query(sql, function (err, result) {
@@ -583,47 +610,22 @@ app.post('/mapUpload', function (req, res){
 
         results.forEach(function iteration(value){
 
-            if(mapPeriodData.activities.includes(value.type)){
-                
-                var date = new Date(value.time);
-                year = date.getFullYear()
-                if(year>=mapPeriodData.years.first_year&&year<=mapPeriodData.years.last_year){
-                    
-                    month = date.getMonth()
-                    if(month>=mapPeriodData.months.first_month&&month<=mapPeriodData.months.last_month){
-                        
-                        day = date.getDay()
-                        if(day>=mapPeriodData.days.first_day&&day<=mapPeriodData.days.last_day){
-                            
-                            hour = date.getHours()
-                            if(hour>=mapPeriodData.hours.first_hour&&hour<=mapPeriodData.hours.last_hour){
-                               
-                                mins = date.getMinutes()
-                                if(mins>=mapPeriodData.hours.first_mins&&mins<=mapPeriodData.hours.last_mins){
-                                    
-                                    var lat = value.latitude*Math.pow(10,-7);
-                                    var lng = value.longitude*Math.pow(10,-7);
-                                    var elem = { lat:lat, lng:lng, count: 1};
-                                    var found = false;
-                                    found = tempMap.data.some(function iteration(val,ind,arr){
-                                        if(val.lat === lat && val.lng === lng){
-                                            val.count += 1;
-                                            return true;
-                                        } 
-                                    })
-                                    if(!found)
-                                        tempMap.data.push(elem)
-                                    
-                                }
-                            }
-                        }
-                    }
-                }
+            if(isInside(mapPeriodData,value)){                 
+                var lat = value.latitude*Math.pow(10,-7);
+                var lng = value.longitude*Math.pow(10,-7);
+                var elem = { lat:lat, lng:lng, count: 1};
+                var found = false;
+                found = tempMap.data.some(function iteration(val,ind,arr){
+                    if(val.lat === lat && val.lng === lng){
+                        val.count += 1;
+                        return true;
+                    } 
+                })
+                if(!found)
+                    tempMap.data.push(elem)
+                                
             }
         })
-
-
-
     })
 
     mapData = tempMap
@@ -632,6 +634,126 @@ app.post('/mapUpload', function (req, res){
 
 app.get('/downloadmapData', (req, res) => {
     res.json(mapData);
+})
+
+typeExport = null;
+app.post('/exportUpload', function (req, res){	
+    let mapPeriodData = req.body.data
+    let type = req.body.type
+
+    mapPeriodData = fixMapPeriodData(mapPeriodData);
+    if(type === "JSON"){
+        jsonExportTemp = {"locations":[]};
+        sql = "SELECT location_time,activity.time,type,latitude,longitude,location_user_id from activity join location on location_user_id = user_id AND location_time = location.time"
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            
+            results = JSON.parse(JSON.stringify(result))
+
+            results.forEach(function iteration(value){
+
+                if(isInside(mapPeriodData,value)){                 
+                   jsonExportTemp.locations.push({
+                    "timestampMs" : value.location_time,
+                    "latitudeE7" : value.latitude,
+                    "longitudeE7" : value.longitude,
+                    "UserId": value.location_user_id, 
+                    "activity" : [ {
+                      "timestampMs" : value.time,
+                      "activity" : [ {
+                        "type" : value.type,
+                      } ]
+                    } ]
+                  })             
+                }
+            })
+            fs.writeFileSync('./files/tempFile.json', JSON.stringify(jsonExportTemp))
+        })
+    }
+    else if(type === "XML"){
+        xmlTempFile = "<locations>\n"
+        sql = "SELECT location_time,activity.time,type,latitude,longitude from activity join location on location_user_id = user_id AND location_time = location.time"
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            
+            results = JSON.parse(JSON.stringify(result))
+
+            results.forEach(function iteration(value){
+
+                if(isInside(mapPeriodData,value)){                 
+                    xmlTempFile = xmlTempFile.concat("<location>\n")
+                    xmlTempFile = xmlTempFile.concat("<time>"+value.location_time+"</time>\n")
+                    xmlTempFile = xmlTempFile.concat("<latitude>"+value.latitude+"</latitude>\n")
+                    xmlTempFile = xmlTempFile.concat("<longitude>"+value.longitude+"</longitude>\n")
+                    xmlTempFile = xmlTempFile.concat("<activity_time>"+value.time+"</activity_time>\n")
+                    xmlTempFile = xmlTempFile.concat("<activity_type>"+value.type+"</activity_type>\n")
+                    xmlTempFile = xmlTempFile.concat("<user_id>"+value.location_user_id+"</user_id>\n")                    
+                    xmlTempFile = xmlTempFile.concat("</location>\n")
+                }
+            })
+            xmlTempFile = xmlTempFile.concat("</locations>")
+            fs.writeFileSync('./files/tempFile.xml', xmlTempFile)
+        })
+    }
+    else if(type === "CSV"){
+        const csvWriter = createCsvWriter({
+            path: './files/tempFile.csv',
+            header: [
+              {id: 'location_time', title: 'Time'},
+              {id: 'latitudeE7', title: 'Latitude'},
+              {id: 'longitudeE7', title: 'Longitude'},
+              {id: 'activity_type', title: 'Type'},
+              {id: 'activity_time', title: 'Activity Time'},
+              {id: 'user_id', title: 'User Id'},
+            ]
+          });
+        csvExportTemp = []
+        sql = "SELECT location_time,activity.time,type,latitude,longitude,location_user_id from activity join location on location_user_id = user_id AND location_time = location.time"
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            
+            results = JSON.parse(JSON.stringify(result))
+
+            results.forEach(function iteration(value){
+
+                if(isInside(mapPeriodData,value)){                 
+                    csvExportTemp.push({
+                        location_time: value.location_time,
+                        latitudeE7 : value.latitude,
+                        longitudeE7 : value.longitude,
+                        activity_type: value.type,
+                        activity_time: value.time,
+                        user_id: value.location_user_id 
+                    })            
+                }
+            })
+            csvWriter.writeRecords(csvExportTemp)
+        })
+    }
+
+    typeExport = type;
+    res.sendStatus(200);
+})
+
+app.get('/downloadExport', (req, res) => {
+    if (typeExport === 'JSON'){
+        res.download('./files/tempFile.json');
+    }
+    if (typeExport === 'CSV'){
+        res.download('./files/tempFile.csv');
+    }
+    if (typeExport === 'XML'){
+        res.download('./files/tempFile.xml');
+    }
+})
+
+app.post('/deleteBase', function (req, res){	
+    sql = "DELETE from location"
+    con.query(sql, function (err, result) {})
+    sql = "DELETE from activity"
+    con.query(sql, function (err, result) {})
+
+    res.sendStatus(200);
 })
 
 //Works but O(n^2)
@@ -656,10 +778,17 @@ function parseData(jsonFile,coordinates){
             query("INSERT INTO location VALUES ("+curUserId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
             if (value.hasOwnProperty("activity")){
                 value.activity.forEach(function iter(curActivity){
-                    var i = 0;
-                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "IN_VEHICLE")
-                        i = 1;
-                    query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+curActivity.activity[i].type+"')");
+                    insActivity = curActivity.activity[0].type
+                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "IN_VEHICLE"){
+                        child_activities = ['IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE','RUNNING','WALKING']
+                        curActivity.activity.forEach(function it(conActivity){
+                            if(child_activities.includes(conActivity.type)){
+                                insActivity = conActivity.type
+                                return;
+                            }      
+                        })
+                    }        
+                    query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+insActivity+"')");
                 })
             }
         }else{

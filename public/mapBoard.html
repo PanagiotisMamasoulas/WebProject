@@ -22,7 +22,7 @@
     
     <div style = "width: 84%; margin-left: 15%;">
         
-        <div style = "border:solid;width:60%;overflow: hidden">
+        <div style = "border:solid;width:55%;overflow: hidden;float:left;margin-bottom:7px;">
             <div class="controls">
                 <div class = "clearfix">
                     <div style = "float: left;">
@@ -151,12 +151,18 @@
                 <div class="clearfix">
                     <label class="control-label">Activities:</label> <br>
                     <form id = "checkboxForm">
+                        <input type="checkbox" name="activity" value="IN_VEHICLE">
+                        <label for="vehicle1"> IN_VEHICLE</label>
+                        <input type="checkbox" name="activity" value="IN_RAIL_VEHICLE">
+                        <label for="vehicle1"> IN_RAIL_VEHICLE</label>
                         <input type="checkbox" name="activity" value="IN_RAIL_VEHICLE">
                         <label for="vehicle1"> IN_RAIL_VEHICLE</label>
                         <input type="checkbox" name="activity" value="ON_BICYCLE">
                         <label for="vehicle2"> ON_BICYCLE</label>
                         <input type="checkbox" name="activity" value="IN_ROAD_VEHICLE">
                         <label for="vehicle3"> IN_ROAD_VEHICLE</label><br> 
+                        <input type="checkbox" name="activity" value="ON_FOOT">
+                        <label for="vehicle1"> ON_FOOT</label>
                         <input type="checkbox" name="activity" value="RUNNING">
                         <label for="vehicle1"> RUNNING</label>
                         <input type="checkbox" name="activity" value="STILL">
@@ -178,11 +184,25 @@
                 </div>
             </div>
         </div>
+        <div style = "float:left;">
+            <div>
+                <input type="button" value="Export..." onclick="exportBase()">
+                <form id = "exportForm">
+                    <input type="radio" name="exportType" value="XML">
+                    <label for="export1"> XML</label>
+                    <input type="radio" name="exportType" value="CSV">
+                    <label for="export2"> CSV</label>
+                    <input type="radio" name="exportType" value="JSON">
+                    <label for="export3"> JSON</label>
+                </form>
+            </div><br>
+            <input type="button" value="Delete..." onclick="deleteBase()">
+        </div>
         <div id = "mapDiv">
             <div id="mapid"></div>
         </div>
     </div>
-    
+<a id="downloadAnchorElem" style="display:none"></a>    
 </body>
 
 <script>
@@ -205,6 +225,10 @@
         element.checked = false
     });
 
+    var ele = document.getElementsByName("exportType");
+    for(var i=0;i<ele.length;i++)
+        ele[i].checked = false;
+    
     
     $.ajax({
             url: 'http://localhost:3000/getYears0',
@@ -253,8 +277,7 @@
         });  
     }
 
-    function update(){
-        //check if ok
+    function returnData(){
         activities = []
         all_activities = document.getElementsByName("activity")
         all_activities.forEach(element => {
@@ -265,16 +288,16 @@
         if(!document.getElementById("checkYearAll").checked){
             if(document.getElementById("first_year").value === ""){
                 alert("Year(s) cannot be Blanc");
-                return;
+                return null;
             }
             if(document.getElementById("checkYear").checked){
                 if(document.getElementById("last_year").value === ""){
                     alert("Year(s) cannot be Blanc");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("first_year").value>=document.getElementById("last_year").value){
                     alert("Early year cannot be greater than late year or Same");
-                    return;
+                    return null;
                 }
             }
         }
@@ -282,16 +305,16 @@
         if(!document.getElementById("checkMonthAll").checked){
             if(document.getElementById("first_month").value === ""){
                 alert("Month(s) cannot be Blanc");
-                return;
+                return null;
             }
             if(document.getElementById("checkMonth").checked){
                 if(document.getElementById("last_month").value === ""){
                     alert("Month(s) cannot be Blanc");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("first_month").value>=document.getElementById("last_month").value){
                     alert("Early month cannot be greater than late month or Same");
-                    return;
+                    return null;
                 }
             }
         }
@@ -299,16 +322,16 @@
         if(!document.getElementById("checkDayAll").checked){
             if(document.getElementById("first_day").value === ""){
                 alert("Day(s) cannot be Blanc");
-                return;
+                return null;
             }
             if(document.getElementById("checkDay").checked){
                 if(document.getElementById("last_day").value === ""){
                     alert("Day(s) cannot be Blanc");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("first_day").value>=document.getElementById("last_day").value){
                     alert("Early Day cannot be greater than late Day or Same");
-                    return;
+                    return null;
                 }
             }
         }
@@ -316,33 +339,33 @@
         if(!document.getElementById("checkHourAll").checked){
             if(document.getElementById("first_hour").value === "" || document.getElementById("first_mins").value === ""){
                 alert("Hour(s) cannot be Blanc");
-                return;
+                return null;
             }
             if(document.getElementById("first_hour").value > 23 || document.getElementById("first_mins").value > 59){
                 alert("Hour(s) format not correct");
-                return;
+                return null;
             }
             if(document.getElementById("checkHour").checked){
                 if(document.getElementById("last_hour").value === "" || document.getElementById("last_mins").value === ""){
                     alert("Hour(s) cannot be Blanc");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("last_hour").value > 23 || document.getElementById("last_mins").value > 59){
                     alert("Hour(s) format not correct");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("first_hour").value>document.getElementById("last_hour").value){
                     alert("Early Hour cannot be greater than late Hour");
-                    return;
+                    return null;
                 }
                 if(document.getElementById("first_hour").value===document.getElementById("last_hour").value){
                     if(document.getElementById("first_mins").value>document.getElementById("last_mins").value){
                         alert("Early Hour cannot be greater than late Hour");
-                        return;
+                        return null;
                     }
                     if(document.getElementById("first_mins").value===document.getElementById("last_mins").value){
                         alert("Early Hour cannot be the same with late Hour");
-                        return;
+                        return null;
                     }
                 }
             }
@@ -351,7 +374,7 @@
 
         if(activities.length === 0 && !document.getElementById("checkActivityAll").checked){
             alert("No activity Selected");
-            return;
+            return null;
         }
 
         var data = {
@@ -383,6 +406,14 @@
             },
             activities: activities
         }
+        return data;
+    }
+
+    function update(){
+        var data = returnData();
+        if(data === null)
+            return;
+        
         $.ajax({
                 url: 'http://localhost:3000/mapUpload',
                 data: JSON.stringify(data),
@@ -398,6 +429,77 @@
             });
     }
 
+    function deleteBase(){
+
+        if (confirm('Are you sure you want to everything from the database?')){
+            $.ajax({
+                url: 'http://localhost:3000/deleteBase',
+                data: null,
+                cache: false,
+                contentType: "application/json",
+                processData: false,
+                method: 'POST',
+                success: function(){}
+            });
+        }
+    }
+
+    function exportBase(){
+        var ele = document.getElementsByName("exportType");
+        type = null
+        for(var i=0;i<ele.length;i++){
+            if(ele[i].checked === true){
+                type = ele[i].value
+            }
+        }
+        if(type === null){
+            alert("Please select export type")
+            return;
+        }
+
+        var data = returnData();
+        if(data === null)
+            return;
+
+        exportData = {
+            type: type,
+            data: data
+        }
+
+        $.ajax({
+            url: 'http://localhost:3000/exportUpload',
+            data: JSON.stringify(exportData),
+            cache: false,
+            contentType: "application/json",
+            processData: false,
+            method: 'POST',
+            success: function(){
+                $.get( "/downloadExport", function( file ) {
+                    if(type === 'JSON'){
+                        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(file));
+                        var dlAnchorElem = document.getElementById('downloadAnchorElem');
+                        dlAnchorElem.setAttribute("href",     dataStr     );
+                        dlAnchorElem.setAttribute("download", "export.json");
+                        dlAnchorElem.click();
+                    }
+                    else if(type === 'CSV'){
+                        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(file);
+                        var dlAnchorElem = document.getElementById('downloadAnchorElem');
+                        dlAnchorElem.setAttribute("href",     dataStr     );
+                        dlAnchorElem.setAttribute("download", "export.csv");
+                        dlAnchorElem.click();
+                    }
+                    else if(type === 'XML'){
+                        var dataStr = "data:text/xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(file.documentElement));
+                        var dlAnchorElem = document.getElementById('downloadAnchorElem');
+                        dlAnchorElem.setAttribute("href",     dataStr     );
+                        dlAnchorElem.setAttribute("download", "export.xml");
+                        dlAnchorElem.click();
+                    }
+                });
+            }
+        });
+    }
 
 var map = L.map('mapid').setView([38.230462,21.753150], 12);
 
