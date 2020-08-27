@@ -43,6 +43,7 @@ app.listen(port, () => console.log(`Listening to ${port}...`));
 
 var jsonFile = null;
 var testData = null;
+var curUserId = "3"
 app.post('/jsonUpload', function (req, res){
 	var form = new formidable.IncomingForm();
 		
@@ -51,7 +52,9 @@ app.post('/jsonUpload', function (req, res){
     form.on('file', function (name, file){
 		let rawdata = fs.readFileSync(file.path);
 		jsonFile = JSON.parse(rawdata)
-		//testData = heatMap(jsonFile)
+        //testData = heatMap(jsonFile)
+        var d = new Date();
+        query("UPDATE user set last_upload = " + d.getTime() + " where id = "+curUserId)
     });
 
     res.sendStatus(200);
@@ -61,7 +64,6 @@ app.get('/download', (req, res) => {
     res.json(testData);
 })
 
-var curUserId = "3"
 app.post('/arrayUpload', function (req, res){	
     let array = req.body
     parseData(jsonFile,array)
@@ -250,7 +252,7 @@ statData = {
 	dates : {
 		startDate : null,
 		endDate : null,
-		lastUplaod : new Date(2020, 7, 10)
+		lastUplaod : null
 	},
 	position : null,
 	score : null,
@@ -275,6 +277,16 @@ app.post('/statUpload', function (req, res){
         date = new Date(JSON.parse(JSON.stringify(result[0]))['MIN(time)'])
 
         statData.dates.startDate = date.toDateString()
+        
+    });
+
+    sql = "SELECT last_upload from user where id =" + curUserId
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        date = new Date(JSON.parse(JSON.stringify(result[0]))['last_upload'])
+
+        statData.dates.lastUplaod = date.toDateString()
         
     });
 
@@ -489,10 +501,15 @@ app.post('/dashUpload', function (req, res){
         results.forEach(function iteration(value){
             tempDash.userSubs.push({name:value.username,subs:value.count})
         })
-
+        tempDash.userSubs.sort(function(a, b) {
+            var keyA = new Date(a.subs),
+              keyB = new Date(b.subs);
+            if (keyA < keyB) return 1;
+            if (keyA > keyB) return -1;
+            return 0;
+          });
     });
-    tempDash.userSubs.sort((a,b) => (a.subs > b.subs) ? 1 : ((b.subs > a.subs) ? -1 : 0))
-
+    
     sql = "SELECT time FROM activity"
     con.query(sql, function (err, result) {
         if (err) throw err;
@@ -803,7 +820,7 @@ function parseData(jsonFile,coordinates){
             //     }
             // })    
         }
-	})	
+    })	
 }
 
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
