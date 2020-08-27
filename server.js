@@ -61,7 +61,7 @@ app.get('/download', (req, res) => {
     res.json(testData);
 })
 
-var curUserId = "4"
+var curUserId = "3"
 app.post('/arrayUpload', function (req, res){	
     let array = req.body
     parseData(jsonFile,array)
@@ -252,21 +252,8 @@ statData = {
 		endDate : null,
 		lastUplaod : new Date(2020, 7, 10)
 	},
-	position : 46,
-	score : {
-		first : {
-			name: "Marika L.",
-			score: 92
-		},
-		second : {
-			name: "Leopold II.",
-			score: 87
-		},
-		third : {
-			name: "Kanellis G.",
-			score: 85
-		}
-	},
+	position : null,
+	score : null,
 	percentages : []
 }
 
@@ -315,7 +302,7 @@ app.post('/statUpload', function (req, res){
 
         results = JSON.parse(JSON.stringify(result))
         var d = new Date();
-        var curYear = 2019//d.getFullYear();
+        var curYear = d.getFullYear();
         var curMonth = d.getMonth();
 
         results.forEach( function iteration(value){
@@ -345,64 +332,81 @@ app.post('/statUpload', function (req, res){
         }) 
     });
 
-    sql = "SELECT location_user_id,username,time,type from activity join user on location_user_id = user.id;"
+    sql = "SELECT username,id,time,type from user JOIN activity on id = location_user_id"
     con.query(sql, function (err, result) {
         if (err) throw err;
         
-        var d = new Date();
-        var cur_month = d.getMonth();
-        var cur_year = 2015//d.getFullYear();
-        results = JSON.parse(JSON.stringify(result))
-
         greenTypes = ['ON_BICYCLE', 'ON_FOOT', 'RUNNING','WALKING']
         redTypes = ['EXITING_VEHICLE', 'IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE', 'IN_VEHICLE']
         neutralTypes = ['STILL', 'TILTING', 'UNKNOWN']
+        var d = new Date();
+        var curMonth = d.getMonth();
+        var curYear = d.getFullYear();
 
-        scores = []
+        finScores = []
 
-        results.forEach( function iteration(value){
-            date = new Date(value.time)
-            month = date.getMonth()
-            year = date.getFullYear()
-            if(month === cur_month && year === cur_year){
-                found = false;
-                scores.forEach(function iter(val){
-                    if(val.id === value.user_id){
+        results = JSON.parse(JSON.stringify(result))
+
+        curId = results[0].id
+        tempScores = {green:0,red:0}
+        results.forEach( function iteration(value,index,array){
+            if(curId !== value.id || ((typeof array[index+1]) === 'undefined')){
+                curId = value.id
+                if((typeof array[index+1]) === 'undefined'){
+                    date = new Date(value.time)
+                    month = date.getMonth()
+                    year = date.getFullYear()
+            
+                    if(year === curYear && month === curMonth){
                         if(greenTypes.includes(value.type))
-                            val.green++;
+                            tempScores.green++;
                         if(redTypes.includes(value.type))
-                            val.red++;
-                        found = true;
-                        return;
+                            tempScores.red++;
                     }
-                })
-                if(!found){
-                    if(greenTypes.includes(value.type))
-                        scores.push({id:value.location_user_id,green:1,red:0,name:value.username})
-                    else if(redTypes.includes(value.type))
-                        scores.push({id:value.location_user_id,green:0,red:1,name:value.username})
-                    else 
-                        scores.push({id:value.location_user_id,green:0,red:0,name:value.username})
                 }
+                percentage = ((tempScores.green/(tempScores.green+tempScores.red))*100).toFixed(2);
+                finScores.push({name:array[index-1].username,score:percentage,id:array[index-1].id})
+                tempScores = {green:0,red:0}
             }
+            else{
+                date = new Date(value.time)
+                month = date.getMonth()
+                year = date.getFullYear()
+            
+                if(year === curYear && month === curMonth){
+                    if(greenTypes.includes(value.type))
+                        tempScores.green++;
+                    if(redTypes.includes(value.type))
+                        tempScores.red++;
+                }
+            }    
         })
 
-
-
-        fin_scores = []
-        scores.forEach( function iteration(value){
-              fin_scores.push({name:value.username,score:((value.green/(value.green+value.red))*100).toFixed(2)})     
-        })
-
-        
-        fin_scores.sort(function(a, b) {
-            var keyA = a.score,
-            keyB = b.score;
+        finScores.sort(function(a, b) {
+            var keyA = new Date(a.score),
+              keyB = new Date(b.score);
             if (keyA < keyB) return -1;
             if (keyA > keyB) return 1;
             return 0;
-        });
+          });
 
+        statData.position = finScores.findIndex(function(person) {
+                return person.id == curUserId
+          }) + 1;
+        statData.score = {
+            first : {
+                name: finScores[0].name,
+                score: finScores[0].score
+            },
+            second : {
+                name: (typeof finScores[1] === 'undefined')?"no_data":finScores[1].name,
+                score: (typeof finScores[1] === 'undefined')?"no_data":finScores[1].score
+            },
+            third : {
+                name: (typeof finScores[2] === 'undefined')?"no_data":finScores[2].name,
+                score: (typeof finScores[2] === 'undefined')?"no_data":finScores[2].score
+            }
+        }
     });
 	res.sendStatus(200);
 });
