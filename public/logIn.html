@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sign in</title>
+	<link rel="stylesheet" href="./log-sign.css" />
+	<script src="jquery-3.5.1.min.js"></script>
+	<script src="md5.js"></script> 
+</head>
+
+<body>
+	<div class="container">
+		<div class="center">
+			<div class="signBox">
+				<p id="signText"><b>Log in to NavMapps</b></p>
+				<p id="formSign">Enter your credentials to log in</p>
+				<hr>
+				<ul onclick="reset()">
+					<li>
+						<div id="liEmail"><b>E-mail</b><br><input type="text" placeholder="Enter your email" id="email"></div>
+					</li>
+					<li>
+						<div id="liPassword"><b>Password</b><br><input type="password" placeholder="Fill in your password"
+								id="password"></div>
+					</li>
+				</ul>
+			</div>
+			<button class="button" style="background-color: red;" onclick="window.location.href='./signUp.html'">Sign Up</a></button>
+			<button class="button" style="float:right;" onclick="logIn()"> Log In </button>
+		</div>
+	</div>
+</body>
+
+<script>
+
+	function logIn() {
+		reset();
+		var email = document.getElementById("email").value;
+		let password = document.getElementById('password').value;
+
+		returnStatus = checkPasswords(password);
+		returnStatus = checkEmail(email);
+		if(returnStatus){
+			var data = { "email": email, "password": MD5(password) };
+			$.ajax({
+				url: 'http://localhost:3000/loginUpload',
+				data: JSON.stringify(data),
+				cache: false,
+				contentType: "application/json",
+				processData: false,
+				method: 'POST',
+				success: function(){
+					$.get( "/downloadLogin", function( loginData ) {
+						if(loginData.error !== null){
+							alert(loginData.error)
+							return;
+						}else{
+							if(loginData.isAdmin)
+								window.location.replace("./dashboard.html");
+							else
+								window.location.replace("./intro.html");
+						}
+					});
+				}
+			});
+		}	
+	}
+
+	function wrongInput(input, element) {
+		var para = document.createElement("p");
+		var node = document.createTextNode(input);
+		para.appendChild(node);
+		para.setAttribute("class", "wrongText")
+		document.getElementById(element).appendChild(para)
+	}
+
+	function reset() {
+		var list = document.getElementsByTagName("INPUT");
+
+		for (i = 0; i < list.length; i++)
+			list[i].classList.remove("wrongInput");
+
+		var invalidTexts = document.getElementsByClassName('wrongText');
+		while (invalidTexts[0])
+			invalidTexts[0].parentNode.removeChild(invalidTexts[0]);
+
+	}
+
+	function checkEmail(email) {
+
+		if (email === "") {//103 empty email
+			document.getElementById("email").setAttribute("class", "wrongInput");
+			wrongInput("Email cannot be Blanc", "liEmail")
+			return false;
+		}
+
+		const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		if (!re.test(String(email).toLowerCase())) {//103 wrong email format
+			document.getElementById("email").setAttribute("class", "wrongInput");
+			wrongInput("Email is not in the right format", "liEmail")
+			return false;
+		}
+
+		return true;
+	}
+
+	function checkPasswords(password) {
+
+		
+		if (password === "") {//103 empty password
+			document.getElementById("password").setAttribute("class", "wrongInput");
+			wrongInput("Password cannot be Blanc", "liPassword")
+			return false;
+		}
+			
+		var charPass = true;
+
+		if (password.length < 8) {//103 password is less than 8 symbols
+			document.getElementById("password").setAttribute("class", "wrongInput");
+			wrongInput("Password must contain at least 8 symbols", "liPassword")
+			charPass = false;
+		}
+
+		if (!(/[A-Z]/.test(password))) {//103 password does not contain capital letter
+			document.getElementById("password").setAttribute("class", "wrongInput");
+			wrongInput("Password must contain at least 1 capital letter", "liPassword")
+			charPass = false;
+		}
+
+		if (!(/[0-9]/.test(password))) {//103 password does not contain number
+			document.getElementById("password").setAttribute("class", "wrongInput");
+			wrongInput("Password must contain at least 1 number", "liPassword")
+			charPass = false;
+		}
+
+		if (/^[a-z0-9]+$/i.test(password)) {//103 password does not contain special char
+			document.getElementById("password").setAttribute("class", "wrongInput");
+			wrongInput("Password must contain at least 1 special char #$*&@", "liPassword")
+			charPass = false;
+		}
+
+		return charPass;
+	}
+</script>
+
+
+</html>

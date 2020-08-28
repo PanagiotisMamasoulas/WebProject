@@ -15,6 +15,7 @@ const port = 3000
 const app = express()
 app.use(express.static('public'));
 app.use(bodyParser.json());
+const request = require('request');
 
 var con = mysql.createConnection({
     host: "DESKTOP-EGIOGHS",
@@ -35,15 +36,97 @@ function toDate(number){
     return date
 }
 
-app.get('/', function(req, res, next) {
-	res.sendFile('intro.html');
+app.listen(port, () => console.log(`Listening to ${port}...`));
+
+app.get('/', function(req, res) {
+    res.sendFile('logIn.html',{root:"./public/"});  
 })
 
-app.listen(port, () => console.log(`Listening to ${port}...`));
+loginData = {
+    error:null,
+    isAdmin:null
+};
+curUserId = null;
+app.post('/loginUpload', function (req, res) {
+	let array = req.body
+
+    tempLoginData = {
+        error:null,
+        isAdmin:null
+    }
+	sql = "SELECT id,userpass,isAdmin from user where email = '" + array.email + "'"
+	con.query(sql, function (err, result) {
+        if (err) throw err;
+        if(!(typeof result[0] === "undefined")){
+            obj = JSON.parse(JSON.stringify(result[0]))
+            if (array.password === obj.userpass){
+                tempLoginData.isAdmin = obj.isAdmin
+                curUserId = obj.id;
+            } 
+            else
+                tempLoginData.error = "Wrong Password"
+        }else
+            tempLoginData.error = "Wrong Email"
+        loginData = tempLoginData;
+	});
+	res.sendStatus(200);
+});
+
+app.get('/downloadLogin', (req, res) => {
+    res.json(loginData);
+})
+
+emailOk = null;
+app.post('/emailUpload', function (req, res) {
+	let array = req.body
+    emailOk = false
+	sql = "SELECT id from user where email = '" + array.email + "'"
+	con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+        if(typeof result[0] === "undefined")
+            emailOk = true
+    });
+    
+	res.sendStatus(200);
+});
+
+app.get('/downloadEmail', (req, res) => {
+    res.json(emailOk);
+})
+
+app.post('/signUpUpload', function (req, res) {
+	let array = req.body
+
+    tempLoginData = {
+        error:null,
+        isAdmin:null
+    }
+
+	sql = "Insert into User(username,userpass,email,isAdmin) Values('" + array.username + "','"+array.password+"','"+array.email+"',false)"
+	con.query(sql, function (err, result) {
+        if (err) throw err;
+        
+    });
+    
+    sql = "SELECT id from user where email = '" + array.email + "'"
+	con.query(sql, function (err, result) {
+        if (err) throw err;
+        obj = JSON.parse(JSON.stringify(result[0]))
+        tempLoginData.isAdmin = false
+        curUserId = obj.id;
+        loginData = tempLoginData;
+    });
+
+	res.sendStatus(200);
+});
+
+app.get('/downloadSignUp', (req, res) => {
+    res.sendStatus(200);
+})
 
 var jsonFile = null;
 var testData = null;
-var curUserId = "3"
 app.post('/jsonUpload', function (req, res){
 	var form = new formidable.IncomingForm();
 		
@@ -359,7 +442,8 @@ app.post('/statUpload', function (req, res){
 
         results = JSON.parse(JSON.stringify(result))
 
-        curId = results[0].id
+        if(!(typeof results[0] !== undefined))
+            curId = results[0].id
         tempScores = {green:0,red:0}
         results.forEach( function iteration(value,index,array){
             if(curId !== value.id || ((typeof array[index+1]) === 'undefined')){
@@ -407,8 +491,8 @@ app.post('/statUpload', function (req, res){
           }) + 1;
         statData.score = {
             first : {
-                name: finScores[0].name,
-                score: finScores[0].score
+                name: (typeof finScores[0] === 'undefined')?"no_data":finScores[0].name,
+                score: (typeof finScores[0] === 'undefined')?"no_data":finScores[0].score
             },
             second : {
                 name: (typeof finScores[1] === 'undefined')?"no_data":finScores[1].name,
