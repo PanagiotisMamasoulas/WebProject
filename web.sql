@@ -5,7 +5,8 @@ CREATE TABLE user (
     id INT AUTO_INCREMENT,
     username VARCHAR(40) NOT NULL,
     userpass VARCHAR(255) NOT NULL,
-    email VARCHAR(40) default(NULL),
+    email VARCHAR(40) default(NULL) UNIQUE,
+    last_upload BIGINT default(0),
     isAdmin BOOLEAN DEFAULT('false'),
     PRIMARY KEY (id)
 );
@@ -30,4 +31,9 @@ CREATE TABLE activity (
         REFERENCES location(user_id, time)
 );
 
-INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Γιάννης","12313fdsa3","Giannaros@gmail.com",false);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("ΠανΖήσης","12313@Fdsa","Web@ceid.com",true);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Γιάννης","12313@Fdsa","Giannaros@gmail.com",false);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Μαρία","12313@Fdsa","Mariaros@gmail.com",false);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Κλεομενης","12313@Fdsa","Kleomenaros@gmail.com",false);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Αβατικιωτης","12313@Fdsa","Avatikiotaros@gmail.com",false);
+INSERT INTO user (username,userpass,email,isAdmin) VALUES ("Γωγώ","12313@Fdsa","Gogaros@gmail.com",false);
