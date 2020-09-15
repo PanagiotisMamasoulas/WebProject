@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+	<title>Welcome</title>
+	<link rel="stylesheet" href="css/intro.css" />
+	<script src="/javascript/jquery-3.5.1.min.js"></script>
+</head>
+
+<body>
+
+	<ul>
+		<li><a href="" class="active">Home</a></li>
+		<li><a href="./analytics.html">Analytics</a></li>
+		<li><a href="./upload.html">Upload</a></li>
+	</ul>
+
+
+	<p id="wText"></p>
+	<div id="statisticDiv">
+		<div id="pieDiv">
+			<h1 id="wScore"></h1>
+			<canvas id="pieChart"></canvas>
+		</div>
+		<div id="chartDiv">
+			<h1 id="wChart">Your score over the past 12 months!</h1>
+			<canvas id="lineChart"></canvas>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+
+	<div id="dateDiv">
+		<h3 style="padding-top: 3px;text-decoration: underline;">The period of your registries is: </h3>
+		<h3 id="wPeriod">
+			</h2> <br>
+			<h3 style="text-decoration: underline;float:left;margin-right:4px;">Your last file upload was at: </h3>
+			<h3 id="wUpload" style="float:left;"></h3>
+	</div>
+	<div id="leaderDiv" style="text-align: center;">
+		<h3 id="leaderB" style="text-decoration: underline;"></h3>
+		<table id="tblUser">
+			<thead>
+				<tr>
+					<th>Position</th>
+					<th>Name</th>
+					<th>Score</th>
+				</tr>
+			</thead>
+			<tbody id="scoreTable"></tbody>
+		</table>
+
+	</div>
+
+</body>
+
+<script src="intro.js"></script>
+
+</html>

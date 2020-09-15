@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/analytics.css" />
+    <title>Analytics</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+    
+    <script src="./heatmap.js"></script>
+    <script src="./leaflet-heatmap.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+    <script src="jquery-3.5.1.min.js"></script>
+
+
+</head>
+<body>
+    
+    <ul>
+        <li><a href="./intro.html">Home</a></li>
+        <li><a href="" class = "active">Analytics</a></li>
+        <li><a href="./upload.html">Upload</a></li>
+    </ul>
+
+    <div style = "padding-top: 45px;">
+    
+    <div style = "float:left;">
+        <h3 style = "margin-bottom:0px;">Select the period of the analytics</h3>
+        <div class="control-group" style="border:solid;padding:2px;">
+            <label class="control-label" style = "float: left;">Month:</label>
+            <div class="controls">
+                <select id="first_month" autocomplete="off">
+                <option value="">Month</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+            /
+            <select id="first_year">
+                <option value="">Year</option>
+            </select>
+            </div>
+            <br>
+            <div class="controls" id = "periodDiv" style = "display: none;">
+                <label class="control-label" style = "float: left;">Till:</label>
+                <select id="last_month" autocomplete="off">
+                    <option value="">Month</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+                /
+                <select id="last_year">
+                    <option value="">Year</option>
+                </select>
+            </div><br>
+            
+            <input id = "doneB" type="button" value="Done!" onclick="analyze()" style="float: left;">
+            <label class="control-label" style = "float: left;">Period:</label>
+            <input type="checkbox" onclick = "handleClick(this)" id = "check">
+            
+        </div>
+    </div>
+    
+
+    <div id = "pieDiv">
+        <h3 style = "text-align: center;">Percentage of each type of activity</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <div id ="hourDiv" style = "float: left;max-width: 30%;">
+        <table id = "hourTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Hour</th>
+                    <th>Day</th>
+                </tr>
+            </thead>
+            <tbody id = "hourBody"></tbody>
+        </table>
+    </div>
+
+    <div class = "clearfix"></div>
+
+    <div id = "mapDiv">
+        <div id="mapid"></div>
+    </div>
+
+</body>
+
+<script src="analytics.js"></script>
+
+</html>

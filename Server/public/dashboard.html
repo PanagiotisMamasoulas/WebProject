@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="dashBoard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    
+        <ul style="float: left;">
+            <li><a class="active">DashBoard</a></li>
+            <li><a href="./mapBoard.html">MapBoard</a></li>
+        </ul>
+    
+
+    <div style = "width: 84%; margin-left: 15%;">
+
+        <div id = "pieDiv">
+            <h3 style = "text-align: center;margin-top: 0;">Percentage of each type of activity</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <div style = "float: left;">
+            <h3 style = "margin-top: 0;">Registries Per User</h3>
+            <table id = "tblUser">   
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Registries</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div id = "clearfix"></div>
+        <br>
+        <div style = "float: left;width:40%">
+            <h3 style = "margin-top: 0;">Select type of distribution</h3>
+            <div >
+                <form name = "radioForm">
+                    <input type="radio" id="month" name="distribution" value="month">
+                    <label for="month">By month</label><br>
+                    <input type="radio" id="week" name="distribution" value="week">
+                    <label for="week">By week</label><br>
+                    <input type="radio" id="hour" name="distribution" value="hour">
+                    <label for="hour">By hour</label><br>
+                    <input type="radio" id="year" name="distribution" value="year">
+                    <label for="year">By year</label><br>
+                </form>
+            </div>
+        </div>
+        <div style="float: left;width: 60%;">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    var ele = document.getElementsByName("distribution");
+    for(var i=0;i<ele.length;i++){
+        if(!(ele[i].value === "month")){
+            ele[i].checked = false;
+        }else{
+            ele[i].checked = true;
+        }
+    }
+
+    function getRandomInt(max) {
+            return Math.floor(Math.random() * Math.floor(max));
+        }   
+
+    function tableElement(element,row){
+        td = document.createElement('td');
+        td.appendChild(document.createTextNode(element));
+        row.appendChild(td);
+    }
+
+    function tableRow(elements,table){
+        tr = document.createElement('tr');
+
+        elements.forEach(function iteration(value, index, array){
+            tableElement(value,tr)
+        })
+
+        table.appendChild(tr);
+    }
+
+    var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'Octomber', 'November', 'December']
+    var days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    var hours = ['00:00-00:59','01:00-01:59','00:02-02:59','03:00-03:59','04:00-04:59','05:00-05:59','06:00-06:59','07:00-07:59','08:00-08:59','09:00-09:59',
+    '10:00-10:59','11:00-11:59','12:00-12:59','13:00-13:59','14:00-14:59','15:00-15:59','16:00-16:59','17:00-17:59','18:00-18:59','19:00-19:59','20:00-20:59',
+    '21:00-21:59','22:00-22:59','23:00-23:59']
+
+    dashData = null;
+    $.ajax({
+            url: 'http://localhost:3000/dashUpload',
+            data: null,
+            cache: false,
+            contentType: "application/json",
+            processData: false,
+            method: 'POST',
+            success: function(){
+                $.get( "/downloadDashData", function( data ) {
+                    loadPage(data)
+                });
+            }
+        });
+    loadPage(dashData)
+    function loadPage(dashData){
+        colors = []
+        for(i = 0;i<dashData.activity.percentages.length;i++)
+            colors.push("rgb("+getRandomInt(256)+","+getRandomInt(256)+","+getRandomInt(256)+")")
+
+        var ctp = document.getElementById("pieChart").getContext('2d');
+            var myPieChart = new Chart(ctp, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: dashData.activity.percentages,
+                        backgroundColor: colors
+                    }],
+                    labels: dashData.activity.labels
+                },
+                options: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var dataset = data.datasets[tooltipItem.datasetIndex];
+                                var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
+                                    return previousValue + currentValue;
+                                });
+                                var currentValue = dataset.data[tooltipItem.index];
+                                var precentage = Math.floor(((currentValue/total) * 100)+0.5);         
+                                return precentage + "% " + data.labels[tooltipItem.index];
+                            }
+                        }
+                    }
+                }
+            });
+
+        var table = document.getElementById('tableBody');
+        dashData.userSubs.forEach( function iteration(value,index,array){
+            tableRow([(index+1)+'.',value.name,value.subs],table)
+        })
+        
+
+        colors = []
+        for(i = 0;i<dashData.registries.month.length;i++)
+            colors.push("rgb("+getRandomInt(256)+","+getRandomInt(256)+","+getRandomInt(256)+")")
+
+        var ctx = document.getElementById("barChart").getContext('2d');
+        var myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: { datasets: [{
+                        data: dashData.registries.month,
+                        backgroundColor: colors
+                    }],
+                    labels: months
+                },
+            options: {
+                legend : {
+                    display: false
+                }
+            }
+        });
+
+
+        function changeChartData(chart, labels, data) {
+            
+            chart.data.datasets[0].data = data
+            chart.data.labels = labels
+            
+            colors = []
+            for(i = 0;i<data.length;i++)
+                colors.push("rgb("+getRandomInt(256)+","+getRandomInt(256)+","+getRandomInt(256)+")")
+            chart.data.datasets[0].backgroundColor=colors
+
+
+            chart.update();
+        }
+
+        var rad = document.radioForm.distribution;
+        var prev = null;
+        for (var i = 0; i < rad.length; i++) {
+            rad[i].addEventListener('change', function() {
+                (prev) ? console.log(prev.value): null;
+                if (this !== prev) {
+                    prev = this;
+                    type = this.value;
+                    var label = null;
+                    var data = null;
+                    switch(type){
+                        case "month":
+                            label = months
+                            data = dashData.registries.month
+                            break;
+                        case "week":
+                            label = days
+                            data = dashData.registries.days
+                            break;
+                        case "hour":
+                            label = hours
+                            data = dashData.registries.hour
+                            break;
+                        case "year":
+                            label = dashData.registries.avYears
+                            data = dashData.registries.years
+                            break;
+                    }
+                    changeChartData(myBarChart,label,data)
+                }
+            });
+        }
+
+    }
+</script>
+
+
+</html>
