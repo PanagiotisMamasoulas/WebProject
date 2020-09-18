@@ -45,24 +45,20 @@
 		if(returnStatus){
 			var data = { "email": email, "password": MD5(password) };
 			$.ajax({
-				url: 'http://localhost:3000/loginUpload',
+				url: 'http://localhost:3000/login',
 				data: JSON.stringify(data),
 				cache: false,
 				contentType: "application/json",
 				processData: false,
 				method: 'POST',
 				success: function(){
-					$.get( "/downloadLogin", function( loginData ) {
-						if(loginData.error !== null){
-							alert(loginData.error)
-							return;
-						}else{
-							if(loginData.isAdmin)
-								window.location.replace("./dashboard.html");
-							else
-								window.location.replace("./intro.html");
-						}
-					});
+					// if(loginData.isAdmin)
+					// 		window.location.replace("./dashboard.html");
+					// 	else
+					window.location.replace("./intro.html");
+				},
+				error: function(data){
+					alert(data.data);
 				}
 			});
 		}	

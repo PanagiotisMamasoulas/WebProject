@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="dashBoard.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="jquery-3.5.1.min.js"></script>
+    <script src="./auth.js"></script>
 </head>
+<script>
+    loadPageAuth("dashboard");
+</script>
+
 <body>
     
         <ul style="float: left;">
@@ -99,16 +104,14 @@
 
     
     $.ajax({
-            url: 'http://localhost:3000/dashUpload',
+            url: 'http://localhost:3000/dashboard',
             data: null,
             cache: false,
             contentType: "application/json",
             processData: false,
-            method: 'POST',
-            success: function(){
-                $.get( "/downloadDashData", function( data ) {
-                    loadPage(data)
-                });
+            method: 'GET',
+            success: function(data){
+                loadPage(data)
             }
         });
     

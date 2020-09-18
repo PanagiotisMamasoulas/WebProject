@@ -12,7 +12,12 @@
     
     <script src="./heatmap.js"></script>
     <script src="./leaflet-heatmap.js"></script>
+    <script src="./auth.js"></script>
 </head>
+
+<script>
+    loadPageAuth("mapboard");
+</script>
 <body>
     
     <ul>
@@ -231,30 +236,29 @@
     
     
     $.ajax({
-            url: 'http://localhost:3000/getYears0',
+            url: 'http://localhost:3000/years',
             data: null,
             cache: false,
             contentType: "application/json",
             processData: false,
-            method: 'POST',
-            success: function(){
-                $.get( "/downloadYears0", function( data ) {
-                    fixYears(data.early_year,data.late_year)    
-                });
+            method: 'GET',
+            success: function(data){
+                fixYears(data.early_year,data.late_year)    
             }
         });
-        function fixYears(early_year,late_year){
-            for(i=early_year;i<=late_year;i++){
-                option = document.createElement('option');
-                option.value = i.toString();
-                option.appendChild(document.createTextNode(i));
-                document.getElementById("first_year").appendChild(option);
-                option = document.createElement('option');
-                option.value = i.toString();
-                option.appendChild(document.createTextNode(i));
-                document.getElementById("last_year").appendChild(option);
-            }
+
+    function fixYears(early_year,late_year){
+        for(i=early_year;i<=late_year;i++){
+            option = document.createElement('option');
+            option.value = i.toString();
+            option.appendChild(document.createTextNode(i));
+            document.getElementById("first_year").appendChild(option);
+            option = document.createElement('option');
+            option.value = i.toString();
+            option.appendChild(document.createTextNode(i));
+            document.getElementById("last_year").appendChild(option);
         }
+    }
 
     function handleClick(cb,div) {
         if(cb.checked){
@@ -410,21 +414,19 @@
     }
 
     function update(){
-        var data = returnData();
+        const data = returnData();
         if(data === null)
             return;
-        
+        console.log(data)
         $.ajax({
-                url: 'http://localhost:3000/mapUpload',
+                url: 'http://localhost:3000/mapboard',
                 data: JSON.stringify(data),
                 cache: false,
                 contentType: "application/json",
                 processData: false,
                 method: 'POST',
-                success: function(){
-                    $.get( "/downloadmapData", function( mapData ) {
-                        createHeat(mapData)
-                    });
+                success: function(mapData){
+                    createHeat(mapData)
                 }
             });
     }
@@ -438,8 +440,10 @@
                 cache: false,
                 contentType: "application/json",
                 processData: false,
-                method: 'POST',
-                success: function(){}
+                method: 'DELETE',
+                success: function(){
+                    alert("!deleted!")
+                }
             });
         }
     }
@@ -467,36 +471,34 @@
         }
 
         $.ajax({
-            url: 'http://localhost:3000/exportUpload',
+            url: 'http://localhost:3000/export',
             data: JSON.stringify(exportData),
             cache: false,
             contentType: "application/json",
             processData: false,
             method: 'POST',
-            success: function(){
-                $.get( "/downloadExport", function( file ) {
-                    if(type === 'JSON'){
+            success: function(file){
+                if(type === 'JSON'){
                         var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(file));
                         var dlAnchorElem = document.getElementById('downloadAnchorElem');
                         dlAnchorElem.setAttribute("href",     dataStr     );
                         dlAnchorElem.setAttribute("download", "export.json");
                         dlAnchorElem.click();
-                    }
-                    else if(type === 'CSV'){
-                        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(file);
-                        var dlAnchorElem = document.getElementById('downloadAnchorElem');
-                        dlAnchorElem.setAttribute("href",     dataStr     );
-                        dlAnchorElem.setAttribute("download", "export.csv");
-                        dlAnchorElem.click();
-                    }
-                    else if(type === 'XML'){
-                        var dataStr = "data:text/xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(file.documentElement));
-                        var dlAnchorElem = document.getElementById('downloadAnchorElem');
-                        dlAnchorElem.setAttribute("href",     dataStr     );
-                        dlAnchorElem.setAttribute("download", "export.xml");
-                        dlAnchorElem.click();
-                    }
-                });
+                }
+                else if(type === 'CSV'){
+                    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(file);
+                    var dlAnchorElem = document.getElementById('downloadAnchorElem');
+                    dlAnchorElem.setAttribute("href",     dataStr     );
+                    dlAnchorElem.setAttribute("download", "export.csv");
+                    dlAnchorElem.click();
+                }
+                else if(type === 'XML'){
+                    var dataStr = "data:text/xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(file.documentElement));
+                    var dlAnchorElem = document.getElementById('downloadAnchorElem');
+                    dlAnchorElem.setAttribute("href",     dataStr     );
+                    dlAnchorElem.setAttribute("download", "export.xml");
+                    dlAnchorElem.click();
+                }
             }
         });
     }

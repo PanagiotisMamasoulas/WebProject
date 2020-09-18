@@ -7,7 +7,13 @@
     <title>Welcome</title>
     <link rel="stylesheet" href="intro.css" />
     <script src="jquery-3.5.1.min.js"></script>
+    <script src="./auth.js"></script>
 </head>
+
+<script>
+    loadPageAuth("upload");
+</script>
+
 <body>
     
     <ul>
@@ -85,11 +91,9 @@
             cache: false,
             contentType: "application/json",
             processData: false,
-            method: 'POST',
-            success: function(){
-                $.get( "/downloadStatData", function( data ) {
-                    loadPage(data)
-                });
+            method: 'GET',
+            success: function(data){
+                loadPage(data);
             }
         });
 

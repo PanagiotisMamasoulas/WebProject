@@ -132,24 +132,24 @@
 			wrongInput("Email is not in the right format", "liEmail")
 			return false;
 		}
-		$.ajax({
-			url: 'http://localhost:3000/emailUpload',
-			data: JSON.stringify({email}),
-			cache: false,
-			contentType: "application/json",
-			processData: false,
-			method: 'POST',
-			success: function(){
-				$.get( "/downloadEmail", function( emailOk ) {
-					if(!emailOk){
-						document.getElementById("email").setAttribute("class", "wrongInput");
-						wrongInput("Email exists", "liEmail")
-					}else{
-						sendData(data);
-					}
-				});
-			}
-		});
+		// $.ajax({
+		// 	url: 'http://localhost:3000/emailUpload',
+		// 	data: JSON.stringify({email}),
+		// 	cache: false,
+		// 	contentType: "application/json",
+		// 	processData: false,
+		// 	method: 'POST',
+		// 	success: function(){
+		// 		$.get( "/downloadEmail", function( emailOk ) {
+		// 			if(!emailOk){
+		// 				document.getElementById("email").setAttribute("class", "wrongInput");
+		// 				wrongInput("Email exists", "liEmail")
+		// 			}else{
+		// 				sendData(data);
+		// 			}
+		// 		});
+		// 	}
+		// });
 
 		return true;
 	}
@@ -166,24 +166,28 @@
 		returnStatus = checkPasswords(password, rpassword);
 		data = {username:username,password:MD5(password),email:email}
 
-		if (returnStatus) {
-			checkEmail(data);
-		} else
-			return returnStatus;
+		// if (returnStatus) {
+		// 	checkEmail(data);
+		// } else
+		// 	return returnStatus;
+		if (returnStatus)
+			sendData(data);
 	}
 
 	function sendData(data){
 		$.ajax({
-			url: 'http://localhost:3000/signUpUpload',
+			url: 'http://localhost:3000/signup',
 			data: JSON.stringify(data),
 			cache: false,
 			contentType: "application/json",
 			processData: false,
 			method: 'POST',
 			success: function(){
-				$.get( "/downloadSignUp", function() {
-					window.location.replace("./intro.html");
-				});
+				window.location.replace("./intro.html");
+			},
+			error: function(data){
+				document.getElementById("email").setAttribute("class", "wrongInput");
+				wrongInput("This email already exists!", liEmail)
 			}
 		});
 	}
