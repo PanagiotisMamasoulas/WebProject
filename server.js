@@ -152,15 +152,16 @@ app.post('/jsonUpload', function (req, res){
 });
 
 
-app.post('/arrayUpload',function (req, res){	
+app.post('/arrayUpload',async function (req, res){	
     let coordinates = req.body
-    jsonFile = parseData(jsonFile,coordinates)
+    jsonFile = await parseData(jsonFile,coordinates)
     if(heat)
     testData = heatMap(jsonFile);
+
+    res.json(testData);
     jsonFile = null;
     testData = null;
     heat = null;
-    res.json(testData);
 });
 
 function patraJson(jsonFile){
@@ -176,17 +177,21 @@ function patraJson(jsonFile){
     return tempjson;
 }
 
-function parseData(jsonFile,coordinates){
+async function parseData(jsonFile,coordinates){
     let tempjson = {
         "locations":[]
     }
 
-	jsonFile.locations.forEach(function iteration(value){
+    const connection = createConnection();
+
+    for(i = 0;i<=jsonFile.locations.length - 1;i++){
+        value = jsonFile.locations[i]
+
         var skip = false;
 		var lat = value.latitudeE7*Math.pow(10,-7);
 		var lng = value.longitudeE7*Math.pow(10,-7);
 		 
-        coordinates.forEach(function(element,i,table){
+        coordinates.forEach(function(element){
             var lat_min = element[0].lat;
             var lat_max = element[2].lat;
             var lng_min = element[0].lng;
@@ -197,24 +202,32 @@ function parseData(jsonFile,coordinates){
         
         if(!skip){
             tempjson.locations.push(value);
-            query("INSERT INTO location VALUES ("+curUserId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
-            if (value.hasOwnProperty("activity")){
-                value.activity.forEach(function iter(curActivity){
-                    insActivity = curActivity.activity[0].type
-                    if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "IN_VEHICLE"){
-                        child_activities = ['IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE','RUNNING','WALKING']
-                        curActivity.activity.forEach(function it(conActivity){
-                            if(child_activities.includes(conActivity.type)){
-                                insActivity = conActivity.type
-                                return;
-                            }      
-                        })
-                    }        
-                    query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+insActivity+"')");
-                })
+            await connection.query("INSERT INTO location (`user_id`, `time`,`latitude`,`longitude`) VALUES ("+curUserId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
+            try{
+                if (typeof value.activity !== 'undefined'){
+
+                    for(j=0;j<=value.activity.length - 1;j++){
+                        curActivity = value.activity[j]
+
+                        insActivity = curActivity.activity[0].type
+                        if(curActivity.activity[0].type === "ON_FOOT" || curActivity.activity[0].type === "IN_VEHICLE"){
+                            child_activities = ['IN_RAIL_VEHICLE', 'IN_ROAD_VEHICLE','RUNNING','WALKING']
+                            curActivity.activity.forEach(function it(conActivity){
+                                if(child_activities.includes(conActivity.type)){
+                                    insActivity = conActivity.type
+                                    return;
+                                }      
+                            })
+                        }        
+                        await connection.query("INSERT INTO activity (`location_user_id`,`location_time`,`time`,`type`) VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+insActivity+"')");
+                    }
+                }
+            }catch(error){
+                console.log((typeof value.activity !== 'undefined'))
             }
         }
-    })	
+    }   
+
     return tempjson;
 }
 
@@ -339,15 +352,19 @@ app.get('/periodUpload',async function (req, res){
         top = 8;
         max = 0;
         val.days.forEach(function iter(val,index){
-            if(val>max)
+            if(val>max){
                 top = index;
+                max = val;
+            }
         })
         day = days[top]
         top = 'no_data';
         max = 0;
         val.hours.forEach(function iter(val,index){
-            if(val>max)
+            if(val>max){
                 top = index;
+                max = val;
+            }
         })
         hour = top+":00"
         sampleData.weeks.push({
@@ -409,8 +426,8 @@ app.get('/statUpload', async function (req, res){
 
     const monthEcoResults = JSON.parse(JSON.stringify(monthEcoResult))
     var d = new Date();
-    var curYear = d.getFullYear();
-    var curMonth = d.getMonth();
+    var curYear = 2016//d.getFullYear();
+    var curMonth = 10//d.getMonth();
 
     monthEcoResults.forEach( function iteration(value){
         date = new Date(value.time)
@@ -494,16 +511,16 @@ app.get('/statUpload', async function (req, res){
       }) + 1;
     statData.score = {
         first : {
-            name: (typeof finScores[0] === 'undefined')?"no_data":finScores[0].name,
-            score: (typeof finScores[0] === 'undefined')?"no_data":finScores[0].score
+            name: (typeof finScores[0] === 'undefined')?"no_data":finScores[2].name,
+            score: (typeof finScores[0] === 'undefined')?"no_data":finScores[2].score
         },
         second : {
             name: (typeof finScores[1] === 'undefined')?"no_data":finScores[1].name,
             score: (typeof finScores[1] === 'undefined')?"no_data":finScores[1].score
         },
         third : {
-            name: (typeof finScores[2] === 'undefined')?"no_data":finScores[2].name,
-            score: (typeof finScores[2] === 'undefined')?"no_data":finScores[2].score
+            name: (typeof finScores[2] === 'undefined')?"no_data":finScores[0].name,
+            score: (typeof finScores[2] === 'undefined')?"no_data":finScores[0].score
         }
     }
 

@@ -299,16 +299,19 @@
     }
 
     function updateData(data){
-        
-        labels = data.labels
-        percentages = data.percentages
-        percentages = percentages.toString().match(/\d+(?:\.\d+)?/g).map(Number)
-        weeks = data.weeks
-        heatmapData = data.heatmapData
-
-        createHeat(heatmapData)
-        changeChartData(myPieChart,labels,percentages)
-        updateTable()
+        //if(!data.percentages.toString().match(/\d+(?:\.\d+)?/g))
+            //alert("No data for that period")
+        //else{
+            labels = data.labels
+            percentages = data.percentages
+            percentages = percentages.toString().match(/\d+(?:\.\d+)?/g).map(Number)
+            weeks = data.weeks
+            var heatmapData = data.heatmapData
+            console.log(heatmapData)
+            createHeat(heatmapData)
+            changeChartData(myPieChart,labels,percentages)
+            updateTable()   
+        //}
     }
 
 
@@ -381,11 +384,10 @@
 
     map.addLayer(heatmapLayer);
 
-
     function createHeat(testData){
         heatmapLayer.remove()
         map.addLayer(heatmapLayer);
-        heatmapLayer.setData(testData);
+        heatmapLayer.setData(testData);     
     }
 
 </script>
