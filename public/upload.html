@@ -38,6 +38,10 @@
 </ul>
 
 <div id = "otherDiv">
+    <div style = "float:bottom;">
+        <input type="checkbox" id="heatBox" name="heatBox" value="Bike">
+        <label for="heatBox"> Visualize on map (Extreme delay for large files)</label><br>
+    </div>
     <h3>1)Please select your json file for upload:</h3>
     <input name = "fileB" type="file" id="myFile" accept=".json">
     <br>
@@ -49,7 +53,6 @@
         <h3>Upload Complete!</h3>
         <a href="./intro.html"><input id = "doneB" type="button" value="Back to Home"></a>
     </div>
-
 </div>
 
 <div id = "mapDiv">
@@ -57,6 +60,8 @@
 </div>
 
 <script>
+    document.getElementById("heatBox").checked = false;
+
 	var map = L.map('mapid').setView([38.230462,21.753150], 12);
 
 	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
@@ -108,8 +113,9 @@
             processData: false,
             method: 'POST',
             success: function(data){
-                    createHeat(data)
-                    document.getElementById("uComplete").style.display = "block";
+                if(document.getElementById("heatBox").checked)
+                createHeat(data)
+                document.getElementById("uComplete").style.display = "block";
             }
         });
 
@@ -125,17 +131,23 @@
     document.getElementById('myFile').value = "";
     fileSelector.addEventListener('change', (event) => {
         const file = event.target.files[0];
+        document.getElementById("heatBox").disabled = true;
+        heat = document.getElementById("heatBox").checked;
+        let url = new URL('http://localhost:3000/jsonUpload');
+
+        url.searchParams.append("heat", heat);
 
         var data = new FormData();
         data.append('json', file);
         $.ajax({
-            url: 'http://localhost:3000/jsonUpload',
+            url: url,
             data: data,
             cache: false,
             contentType: false,
             processData: false,
             method: 'POST',
             success: function(data){
+                if(document.getElementById("heatBox").checked)
                 createHeat(data)
                 document.getElementById("gLine2").style.display = "block";
             }

@@ -19,7 +19,6 @@ app.use(bodyParser.json());
 const request = require('request');
 const { promisify } = require('util')
 const writeFile = promisify(fs.writeFile)
-const readFile = promisify(fs.readFile)
 //app.use(limit('400M'));
 
 
@@ -55,11 +54,6 @@ function createConnection() {
       }
     };
   }
-
-function toDate(number){
-    var date = new Date(number * 1000);
-    return date
-}
 
 app.listen(port, () => console.log(`Listening to ${port}...`));
 
@@ -131,22 +125,27 @@ app.post('/signup',async function (req, res) {
 
 var jsonFile = null;
 var testData = null;
+var heat = null;
 app.post('/jsonUpload', function (req, res){
 	var form = new formidable.IncomingForm();
     
     form.parse(req);
-	
+
+    heat = req.query.heat
+    
     form.on('file', async function (name, file){
 		let rawdata = fs.readFileSync(file.path);
         jsonFile = JSON.parse(rawdata)
         jsonFile = patraJson(jsonFile)
-        testData = heatMap(jsonFile)
+        if(heat)
+        testData = heatMap(jsonFile);
         var d = new Date();
         const connection = createConnection();
         await connection.query("UPDATE user set last_upload = " + d.getTime() + " where id = "+curUserId)
+        if(heat)
         res.json(testData);
-        //res.sendStatus(200)
-        //return;
+        else
+        res.sendStatus(200);
     });
 
     
@@ -156,7 +155,11 @@ app.post('/jsonUpload', function (req, res){
 app.post('/arrayUpload',function (req, res){	
     let coordinates = req.body
     jsonFile = parseData(jsonFile,coordinates)
-    testData = heatMap(jsonFile)
+    if(heat)
+    testData = heatMap(jsonFile);
+    jsonFile = null;
+    testData = null;
+    heat = null;
     res.json(testData);
 });
 
@@ -177,6 +180,7 @@ function parseData(jsonFile,coordinates){
     let tempjson = {
         "locations":[]
     }
+
 	jsonFile.locations.forEach(function iteration(value){
         var skip = false;
 		var lat = value.latitudeE7*Math.pow(10,-7);
@@ -405,8 +409,8 @@ app.get('/statUpload', async function (req, res){
 
     const monthEcoResults = JSON.parse(JSON.stringify(monthEcoResult))
     var d = new Date();
-    var curYear = 2018//d.getFullYear();
-    var curMonth = 0//d.getMonth();
+    var curYear = d.getFullYear();
+    var curMonth = d.getMonth();
 
     monthEcoResults.forEach( function iteration(value){
         date = new Date(value.time)
@@ -459,6 +463,7 @@ app.get('/statUpload', async function (req, res){
                 }
             }
             percentage = ((tempScores.green/(tempScores.green+tempScores.red))*100).toFixed(2);
+            if (!isNaN(percentage))
             finScores.push({name:array[index-1].username,score:percentage,id:array[index-1].id})
             tempScores = {green:0,red:0}
         }
