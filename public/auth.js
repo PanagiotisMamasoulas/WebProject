@@ -12,9 +12,11 @@ function loadPageAuth(page){
             if(data.isAdmin === 0){
                 if(adminPages.includes(page))
                     window.location.replace("./intro.html");
-            }else{
+            }else if (data.isAdmin === 1){
                 if(userPages.includes(page))
                     window.location.replace("./dashboard.html");
+            }else{
+                window.location.replace("./login.html");
             }
         }
     });

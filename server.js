@@ -17,6 +17,9 @@ const app = express()
 app.use(express.static('public'));
 app.use(bodyParser.json());
 const request = require('request');
+const { promisify } = require('util')
+const writeFile = promisify(fs.writeFile)
+const readFile = promisify(fs.readFile)
 //app.use(limit('400M'));
 
 
@@ -135,14 +138,15 @@ app.post('/jsonUpload', function (req, res){
 	
     form.on('file', async function (name, file){
 		let rawdata = fs.readFileSync(file.path);
-		jsonFile = JSON.parse(rawdata)
-        //testData = heatMap(jsonFile)
+        jsonFile = JSON.parse(rawdata)
+        jsonFile = patraJson(jsonFile)
+        testData = heatMap(jsonFile)
         var d = new Date();
         const connection = createConnection();
         await connection.query("UPDATE user set last_upload = " + d.getTime() + " where id = "+curUserId)
-        //res.json(testData);
-        res.sendStatus(200)
-        return;
+        res.json(testData);
+        //res.sendStatus(200)
+        //return;
     });
 
     
@@ -151,28 +155,44 @@ app.post('/jsonUpload', function (req, res){
 
 app.post('/arrayUpload',function (req, res){	
     let coordinates = req.body
-    parseData(jsonFile,coordinates)
-	res.sendStatus(200);
+    jsonFile = parseData(jsonFile,coordinates)
+    testData = heatMap(jsonFile)
+    res.json(testData);
 });
 
+function patraJson(jsonFile){
+    let tempjson = {
+        "locations":[]
+    }
+    jsonFile.locations.forEach(function iteration(value){
+        var lat = value.latitudeE7*Math.pow(10,-7);
+		var lng = value.longitudeE7*Math.pow(10,-7);
+        if(getDistanceFromLatLonInKm(lat,lng,38.230462,21.753150)<10)
+            tempjson.locations.push(value)
+    })
+    return tempjson;
+}
+
 function parseData(jsonFile,coordinates){
-	jsonFile.locations.forEach(function iteration(value, index, array){
+    let tempjson = {
+        "locations":[]
+    }
+	jsonFile.locations.forEach(function iteration(value){
         var skip = false;
 		var lat = value.latitudeE7*Math.pow(10,-7);
 		var lng = value.longitudeE7*Math.pow(10,-7);
-		 if(getDistanceFromLatLonInKm(lat,lng,38.230462,21.753150)>10){
-			skip = true;
-		 }else{
-			coordinates.forEach(function(element,i,table){
-				var lat_min = element[0].lat;
-				var lat_max = element[2].lat;
-				var lng_min = element[0].lng;
-				var lng_max = element[2].lng;
-				if( lat>=lat_min && lat<=lat_max && lng>=lng_min && lng<=lng_max)
-					skip = true;
-			})
-        }
+		 
+        coordinates.forEach(function(element,i,table){
+            var lat_min = element[0].lat;
+            var lat_max = element[2].lat;
+            var lng_min = element[0].lng;
+            var lng_max = element[2].lng;
+            if( lat>=lat_min && lat<=lat_max && lng>=lng_min && lng<=lng_max)
+                skip = true;
+        })
+        
         if(!skip){
+            tempjson.locations.push(value);
             query("INSERT INTO location VALUES ("+curUserId+","+value.timestampMs+","+value.latitudeE7+","+value.longitudeE7+")");
             if (value.hasOwnProperty("activity")){
                 value.activity.forEach(function iter(curActivity){
@@ -189,15 +209,9 @@ function parseData(jsonFile,coordinates){
                     query("INSERT INTO activity VALUES ("+curUserId+","+value.timestampMs+","+curActivity.timestampMs+",'"+insActivity+"')");
                 })
             }
-        }else{
-            // testData.data.forEach(function iteration(val,ind){
-            //     if(val.lat === value.latitudeE7*Math.pow(10,-7) && val.lng === value.longitudeE7*Math.pow(10,-7)){
-            //         testData.data.splice(ind,1)  
-            //         return
-            //     }
-            // })    
         }
     })	
+    return tempjson;
 }
 
 app.get('/years', async function (req, res){	
@@ -753,14 +767,15 @@ app.post('/export',async function (req, res){
               })             
             }
         })
-        fs.writeFileSync('./files/tempFile.json', JSON.stringify(jsonExportTemp))
-
+        
+        await writeFile('./files/tempFile.json', JSON.stringify(jsonExportTemp))
+        
     }
     else if(type === "XML"){
-        const result = await connection.query("SELECT location_time,activity.time,type,latitude,longitude from activity join location on location_user_id = user_id AND location_time = location.time");
+        const result = await connection.query("SELECT location_time,activity.time,type,latitude,longitude,location_user_id from activity join location on location_user_id = user_id AND location_time = location.time");
 
         results = JSON.parse(JSON.stringify(result))
-        let xmlTempFile = "";
+        let xmlTempFile = "<locations>";
         results.forEach(function iteration(value){
 
             if(isInside(mapPeriodData,value)){                 
@@ -775,7 +790,7 @@ app.post('/export',async function (req, res){
             }
         })
         xmlTempFile = xmlTempFile.concat("</locations>")
-        fs.writeFileSync('./files/tempFile.xml', xmlTempFile)
+        await writeFile('./files/tempFile.xml', xmlTempFile)
     }
     else if(type === "CSV"){
         const csvWriter = createCsvWriter({
@@ -808,7 +823,7 @@ app.post('/export',async function (req, res){
                 })            
             }
         })
-        csvWriter.writeRecords(csvExportTemp)
+        await csvWriter.writeRecords(csvExportTemp)
     }
     
     if (type === 'JSON'){
